@@ -27,17 +27,28 @@ button:disabled{opacity:.4;cursor:default}
 #ov{display:none;position:fixed;inset:0;z-index:9;background:#000}
 #ov iframe{width:100%;height:100%;border:0}
 #ov button{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:8px;z-index:10;padding:6px 12px;opacity:.8}
+#tb button{padding:5px 10px;margin:2px 4px 2px 0;font-size:.95rem}#mfBar{margin:6px 0}#mfI{width:min(420px,70%);padding:6px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
+#page{background:#fff;color:#111;font:16px/1.6 "Times New Roman",serif;min-height:260px;max-height:70vh;overflow:auto;padding:24px 28px;border:1px solid var(--bd);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.15);margin:8px 0}
+#page img,#page svg{max-width:100%}#page .hid{font-size:11px;color:#888;margin:8px 0 0}#page .mf{display:inline-block;cursor:pointer;vertical-align:middle}#page .mf:hover{outline:1px dashed var(--ac)}#page table{border-collapse:collapse}#page td,#page th{border:1px solid #bbb;padding:3px 8px}
 </style>
 </head>
 <body>
 <main>
 <h1>Word / PDF → HTML trình chiếu</h1>
-<p class="sub">Đưa file lên, web tách từng Câu / Bài / Ví dụ và lời giải. Bấm chuột để hiện từng bước như PowerPoint.</p>
+<p class="sub">Đưa file Word hoặc PDF lên (PDF sẽ được AI nhận dạng sang trang tạm để bạn sửa), web tách từng Câu / Bài / Ví dụ và lời giải. Bấm chuột để hiện từng bước như PowerPoint.</p>
 <div class="card">
 <div id="drop">Kéo thả hoặc bấm để chọn file <b>.docx</b> / <b>.pdf</b></div>
 <input type="file" id="f" accept=".docx,.pdf" hidden>
 <p id="st"></p>
 </div>
+<p id="ai" class="sub">AI Claude: đang kiểm tra…</p>
+<div class="card" id="ocrBox" hidden><b>Nhận dạng PDF bằng AI (OCR)</b><p id="ocrS" class="sub"></p><button class="g" id="ocrStop" hidden>Dừng</button></div>
+<div class="card" id="edBox" hidden><b>Trang tạm – sửa như Word</b>
+<div id="tb"><button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="red" style="color:#fff;background:#e00000">Đỏ</button><button data-c="black" class="g">Bỏ đỏ</button><button data-c="undo" class="g">↶</button><button data-c="redo" class="g">↷</button><button data-c="mf" class="g">+ Công thức</button></div>
+<div id="mfBar" hidden><input id="mfI" placeholder="Nhập LaTeX, ví dụ \\frac{AB}{AC}=\\frac{3}{5}"> <button id="mfOk">OK</button></div>
+<div id="page" contenteditable="true" spellcheck="false"></div>
+<p class="sub">Chữ <b>đỏ</b> hoặc <u>gạch chân</u> trong câu 4 đáp án và câu đúng/sai sẽ được dùng làm đáp án đúng (và được ẩn đi khi trình chiếu).</p>
+<button id="toSlides">Chuyển sang trình chiếu →</button></div>
 <div class="card">
 <label class="o"><input type="checkbox" id="oLine"> Lời giải hiện từng dòng (mặc định: hiện cả lời giải sau 1 lần bấm)</label>
 <label class="o"><input type="checkbox" id="oPlain" checked> Nội dung không phải Câu/Bài hiện theo từng dòng</label>
@@ -58,6 +69,8 @@ button:disabled{opacity:.4;cursor:default}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/cfb@1.2.2/dist/cfb.min.js"></script>
+<script>window.MathJax={tex:{inlineMath:[["$","$"]]},svg:{fontCache:"none"},startup:{typeset:false}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let blocks=[],slides=[],fname='trinh-chieu';
@@ -440,7 +453,7 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,"Segoe UI",Robot
 #st p,#st li{margin:.35em 0}#st img{max-width:100%;height:auto}
 #st table{border-collapse:collapse}#st td,#st th{border:1px solid var(--bd);padding:4px 10px}
 .b{animation:f .25s}@keyframes f{from{opacity:0;transform:translateY(8px)}}
-.sol{border-left:6px solid var(--ac);padding-left:16px;margin-top:20px}
+.sol{border-left:6px solid var(--ac);padding-left:16px;margin-top:20px}.hid{display:none}
 math{font-size:1.1em}.fig{background:#fff;border-radius:6px;vertical-align:middle;max-width:100%}svg.mt,img.mt{vertical-align:middle}.mterr{color:#dc2626}
 .opt{cursor:pointer;border-radius:10px;padding:2px 10px;margin:3px 4px;transition:background .15s}span.opt{display:inline-block}.opt:hover{background:var(--bd)}
 .opt.sel{outline:3px solid var(--ac);background:var(--bd)}.opt.ok{background:#16a34a;color:#fff;outline:0}.opt.no{background:#dc2626;color:#fff;outline:0}
@@ -487,11 +500,123 @@ async function handle(file){
   $('st').textContent='Đang đọc '+file.name+'…';
   try{
     const buf=await file.arrayBuffer();
-    blocks=/\.pdf$/i.test(file.name)?await readPdf(buf):await readDocx(buf);
+    if(/\.pdf$/i.test(file.name)){await ocrPdf(buf);return}
+    $('ocrBox').hidden=true;$('edBox').hidden=true;
+    blocks=await readDocx(buf);
     $('st').textContent='Đã đọc '+blocks.length+' đoạn từ '+file.name+(/\.docx$/i.test(file.name)&&FAIL?' · '+FAIL+' hình/công thức chưa hiển thị được (ảnh WMF/EMF)':'');
     segment();
   }catch(e){$('st').textContent='Lỗi đọc file: '+e.message}
 }
+// ---------- PDF -> OCR bằng AI -> trang tạm chỉnh sửa -> trình chiếu ----------
+let claudeSample=null,claudeDl=null,ocrCtl=null,curMf=null,savedRange=null;
+const sampleP=(async()=>{try{if(window.claude){claudeSample=await claude.use('sample');claudeDl=await claude.use('downloads')}}catch(e){}
+  $('ai').textContent=claudeSample?'AI Claude: sẵn sàng (PDF sẽ được nhận dạng bằng AI).':(window.claude?'AI Claude: chưa kết nối được trong cửa sổ này.':'AI Claude: không khả dụng vì trang đang chạy ngoài claude.ai.');return claudeSample})();
+const PROMPT='Bạn là công cụ OCR cho đề Toán tiếng Việt. Ảnh đính kèm là MỘT trang PDF. Hãy chuyển TOÀN BỘ nội dung trang thành HTML đúng thứ tự đọc, đúng chữ, không bịa, không bỏ sót.\\nQuy tắc:\\n- Mỗi đoạn là một <p>. Giữ nguyên “Câu 1.”, “Bài 2.”, “Ví dụ”, “Lời giải”, “Đáp án: …”. Các đáp án A. B. C. D. nếu nằm cùng một dòng thì để chung một <p>, nếu mỗi đáp án một dòng thì mỗi đáp án một <p>.\\n- Mọi công thức Toán (kể cả số mũ, phân số, căn, chỉ số, ký hiệu hình học như ∆ABC, AB // CD) viết bằng LaTeX trong dấu $...$, ví dụ $\\\\frac{AB}{AC}=\\\\frac{3}{5}$. Số liệu thường như 12,5% viết chữ thường, không cần $.\\n- Chữ đậm dùng <b>, nghiêng <i>, gạch chân <u>. Chữ hoặc đáp án được tô MÀU ĐỎ phải bọc trong <span style=\"color:#e00000\">…</span>; chữ gạch chân giữ <u>.\\n- Bảng dùng <table><tr><td>. \\n- Hình vẽ, biểu đồ, hình minh họa: KHÔNG mô tả, chỉ chèn <figure data-box=\"x0,y0,x1,y1\"></figure> tại đúng vị trí, tọa độ chuẩn hóa 0–1000 (trái, trên, phải, dưới) bao quanh hình.\\n- Bỏ số trang, đầu trang, chân trang.\\nChỉ trả về HTML thuần, không giải thích, không dùng ```.';
+async function texify(h){
+  if(window.MathJax&&MathJax.startup)await MathJax.startup.promise;
+  return h.replace(/\$([^$\n]{1,400}?)\$/g,(m,t)=>mfHTML(t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')));
+}
+function mfHTML(tex){
+  try{const s=MathJax.tex2svg(tex,{display:false}).querySelector('svg');
+    return '<span class="mf" contenteditable="false" data-tex="'+esc(tex).replace(/"/g,'&quot;')+'">'+s.outerHTML+'</span>'}
+  catch(e){return '<span class="mterr">$'+esc(tex)+'$</span>'}
+}
+function cropFig(cv,b){
+  const [x0,y0,x1,y1]=b.split(',').map(v=>Math.max(0,Math.min(1000,Number(v)||0)));
+  const w=Math.max(8,(x1-x0)/1000*cv.width),h=Math.max(8,(y1-y0)/1000*cv.height),c=document.createElement('canvas');
+  c.width=w;c.height=h;c.getContext('2d').drawImage(cv,x0/1000*cv.width,y0/1000*cv.height,w,h,0,0,w,h);
+  return '<p><img class="fig" style="width:'+(w/2/12)+'em" src="'+c.toDataURL('image/png')+'"></p>';
+}
+function trimBand(cv,y0,y1){
+  const w=cv.width,H=Math.round(y1-y0),oy=Math.round(y0),d=cv.getContext('2d').getImageData(0,oy,w,H).data;
+  let t=H,b=-1,l=w,r=-1;
+  for(let y=0;y<H;y++)for(let x=0;x<w;x+=2){const i=(y*w+x)*4;if(d[i]<235||d[i+1]<235||d[i+2]<235){if(y<t)t=y;if(y>b)b=y;if(x<l)l=x;if(x>r)r=x}}
+  if(b<0)return null;
+  t=Math.max(0,t-6);b=Math.min(H-1,b+6);l=Math.max(0,l-6);r=Math.min(w-1,r+6);
+  const c=document.createElement('canvas');c.width=r-l+1;c.height=b-t+1;
+  c.getContext('2d').drawImage(cv,l,oy+t,c.width,c.height,0,0,c.width,c.height);
+  return{url:c.toDataURL('image/png'),w:c.width};
+}
+async function rasterPdf(pdf,n){
+  for(let p=1;p<=n;p++){
+    const pg=await pdf.getPage(p),vp=pg.getViewport({scale:2}),cv=document.createElement('canvas');
+    cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    const tc=await pg.getTextContent(),st=[];
+    tc.items.forEach(it=>{const m=/^\s*(Câu|Bài|Ví dụ)\s*\d+/i.exec(it.str);if(!m)return;const q=vp.convertToViewportPoint(it.transform[4],it.transform[5]);if(q[0]<vp.width*.35)st.push({t:m[0].trim(),y:q[1]-(it.height||12)*vp.scale*1.4})});
+    st.sort((a,b)=>a.y-b.y);
+    const cuts=[{t:'',y:0}].concat(st);
+    cuts.forEach((c,i)=>{const y0=Math.max(0,c.y),y1=i+1<cuts.length?cuts[i+1].y:cv.height;if(y1-y0<10)return;
+      const h=trimBand(cv,y0,y1);if(!h)return;
+      $('page').insertAdjacentHTML('beforeend',(c.t?'<p class="hid">'+esc(c.t)+'.</p>':'')+'<p><img class="fig" style="width:'+(h.w/2/12)+'em" src="'+h.url+'"></p>')});
+  }
+  $('ocrS').textContent+=' (Đã cắt xong '+n+' trang.)';
+}
+async function ocrPdf(buf){
+  $('ocrBox').hidden=false;$('edBox').hidden=false;$('page').innerHTML='';
+  pdfjsLib.GlobalWorkerOptions.workerSrc='';
+  const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise,n=pdf.numPages;
+  $('ocrS').textContent='Đang kết nối Claude…';
+  await Promise.race([sampleP,new Promise(r=>setTimeout(r,12000))]);
+  let lim=null;if(claudeSample){try{lim=await claudeSample.limits()}catch(e){}}
+  if(!claudeSample||!lim||!lim.images){
+    $('ocrS').textContent=(!claudeSample?'Claude chưa kết nối được trong cửa sổ này':'Trang chưa được phép gửi ảnh cho Claude')+' nên chưa nhận dạng bằng AI được. Hãy mở trang ngay trong claude.ai (không mở liên kết riêng, không tải file về) rồi tải lại trang và cho phép khi được hỏi. Tạm thời web cắt từng Câu thành ảnh để bạn vẫn trình chiếu được (chưa có đáp án tương tác).';
+    await rasterPdf(pdf,n);return;
+  }
+  ocrCtl=new AbortController();$('ocrStop').hidden=false;
+  for(let p=1;p<=n&&!ocrCtl.signal.aborted;p++){
+    $('ocrS').textContent='Đang nhận dạng trang '+p+'/'+n+'…';
+    const pg=await pdf.getPage(p),vp=pg.getViewport({scale:2}),cv=document.createElement('canvas');
+    cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    let blob=null;for(const q of [.85,.7,.55]){blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));if(blob.size<3e6)break}
+    try{
+      const r=await claudeSample(PROMPT,{images:[blob],signal:ocrCtl.signal,cache:false,onText:({text})=>{$('ocrS').textContent='Trang '+p+'/'+n+': đã nhận '+text.length+' ký tự…'}});
+      let h=r.text.replace(/^\s*```(?:html)?\s*/i,'').replace(/\s*```\s*$/,'');
+      h=h.replace(/<figure[^>]*data-box="([^"]+)"[^>]*>\s*(?:<\/figure>)?/g,(m,b)=>cropFig(cv,b));
+      $('page').insertAdjacentHTML('beforeend',await texify(h));
+    }catch(e){
+      if(e.code==='cancelled')break;
+      $('ocrS').textContent='Lỗi ở trang '+p+': '+(e.code==='not_granted'?'bạn chưa cho phép dùng Claude':e.code==='rate_limited'?'dùng quá nhanh, hãy thử lại sau':(e.message||e.code))+'. Các trang trước vẫn còn trong trang tạm.';
+      $('ocrStop').hidden=true;return;
+    }
+  }
+  $('ocrStop').hidden=true;
+  $('ocrS').textContent=(ocrCtl.signal.aborted?'Đã dừng. ':'Xong '+n+' trang. ')+'Hãy kiểm tra và sửa trong trang tạm bên dưới (bấm đúp vào công thức để sửa LaTeX), rồi bấm “Chuyển sang trình chiếu”.';
+}
+$('ocrStop').onclick=()=>ocrCtl&&ocrCtl.abort();
+// thanh công cụ
+document.execCommand('styleWithCSS',false,true);
+$('tb').onmousedown=e=>{if(e.target.tagName==='BUTTON')e.preventDefault()};
+$('tb').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c)return;$('page').focus();
+  if(c==='red')document.execCommand('foreColor',false,'#e00000');
+  else if(c==='black')document.execCommand('foreColor',false,'#111111');
+  else if(c==='mf'){curMf=null;$('mfI').value='';$('mfBar').hidden=false;$('mfI').focus()}
+  else document.execCommand(c)};
+document.addEventListener('selectionchange',()=>{const s=getSelection();if(s.rangeCount&&$('page').contains(s.anchorNode))savedRange=s.getRangeAt(0).cloneRange()});
+$('page').ondblclick=e=>{const m=e.target.closest('.mf');if(!m)return;curMf=m;$('mfI').value=m.dataset.tex;$('mfBar').hidden=false;$('mfI').focus()};
+$('mfOk').onclick=async()=>{const v=$('mfI').value.trim();$('mfBar').hidden=true;if(!v)return;
+  if(window.MathJax&&MathJax.startup)await MathJax.startup.promise;const h=mfHTML(v);
+  if(curMf){curMf.outerHTML=h}else{$('page').focus();if(savedRange){const s=getSelection();s.removeAllRanges();s.addRange(savedRange)}document.execCommand('insertHTML',false,h)}};
+const isRed=c=>{const x=document.createElement('canvas').getContext('2d');x.fillStyle='#000';x.fillStyle=c;const v=x.fillStyle;let r,g,b;
+  if(v[0]==='#'){r=parseInt(v.slice(1,3),16);g=parseInt(v.slice(3,5),16);b=parseInt(v.slice(5,7),16)}else{const m=v.match(/\d+/g)||[0,0,0];r=+m[0];g=+m[1];b=+m[2]}
+  return r>=176&&g<=96&&b<=96};
+$('toSlides').onclick=()=>{
+  const d=$('page').cloneNode(true);
+  d.querySelectorAll('.mf').forEach(m=>{m.removeAttribute('contenteditable');m.removeAttribute('data-tex')});
+  [...d.children].forEach(e=>{if(e.tagName==='DIV'&&!e.querySelector('p,table,div')){const p=document.createElement('p');p.innerHTML=e.innerHTML;e.replaceWith(p)}});
+  // đánh dấu chữ đỏ/gạch chân = đáp án đúng, rồi bỏ định dạng đó khỏi slide
+  [...d.querySelectorAll('u,font,span')].forEach(e=>{
+    const c=e.getAttribute('color')||e.style.color,red=c&&isRed(c);
+    if(e.tagName!=='U'&&!red)return;
+    const m=document.createElement('i');m.className='cm';e.parentNode.insertBefore(m,e);
+    if(e.tagName==='SPAN'){e.style.color='';return}
+    while(e.firstChild)e.parentNode.insertBefore(e.firstChild,e);e.remove();
+  });
+  blocks=[...d.children].map(e=>{const t=e.cloneNode(true);t.querySelectorAll('.mf').forEach(m=>m.remove());
+    return{html:e.outerHTML,text:t.textContent.trim(),h:/^H[1-3]$/.test(e.tagName)}}).filter(b=>b.text||/<(img|svg|table)/.test(b.html));
+  fname=fname||'de-pdf';segment();$('st').textContent='Đã chuyển '+blocks.length+' đoạn từ trang tạm sang trình chiếu';
+  $('cnt').scrollIntoView({behavior:'smooth'});
+};
+
 $('drop').onclick=()=>$('f').click();
 $('f').onchange=e=>handle(e.target.files[0]);
 $('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('on')};
@@ -500,7 +625,7 @@ $('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('on');handle(
 $('re').onclick=segment;$('oLine').onchange=$('oPlain').onchange=()=>blocks.length&&segment();
 $('play').onclick=()=>{$('fr').srcdoc=build();$('ov').style.display='block';setTimeout(()=>$('fr').contentWindow.focus(),200)};
 $('cl').onclick=()=>{$('ov').style.display='none';$('fr').srcdoc=''};
-$('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([build()],{type:'text/html'}));a.download=fname+'-trinh-chieu.html';a.click()};
+$('dl').onclick=async()=>{const h=build(),n=fname+'-trinh-chieu.html';if(claudeDl){try{await claudeDl.save({filename:n,data:h});return}catch(e){if(e.code==='declined')return}}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=n;a.click()};
 </script>
 </body>
 </html>
