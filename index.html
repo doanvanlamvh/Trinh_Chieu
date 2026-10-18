@@ -30,6 +30,7 @@ button:disabled{opacity:.4;cursor:default}
 #tb button{padding:5px 10px;margin:2px 4px 2px 0;font-size:.95rem}#mfBar{margin:6px 0}#mfI{width:min(420px,70%);padding:6px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
 #page{background:#fff;color:#111;font:16px/1.6 "Times New Roman",serif;min-height:260px;max-height:70vh;overflow:auto;padding:24px 28px;border:1px solid var(--bd);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.15);margin:8px 0}
 #page img,#page svg{max-width:100%}#page .hid{font-size:11px;color:#888;margin:8px 0 0}#page .mf{display:inline-block;cursor:pointer;vertical-align:middle}#page .mf:hover{outline:1px dashed var(--ac)}#page table{border-collapse:collapse}#page td,#page th{border:1px solid #bbb;padding:3px 8px}
+#keys .kr{padding:6px 0;border-bottom:1px solid var(--bd);font-size:.95rem}#keys label{margin:0 8px 0 2px;white-space:nowrap}#keys select,#keys .ks{padding:3px 6px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
 </style>
 </head>
 <body>
@@ -54,6 +55,9 @@ button:disabled{opacity:.4;cursor:default}
 <label class="o"><input type="checkbox" id="oPlain" checked> Nội dung không phải Câu/Bài hiện theo từng dòng</label>
 <button class="g" id="re" disabled>Tách lại</button>
 </div>
+<div class="card" id="keyBox" hidden><b>Đáp án đúng từng câu</b>
+<p class="sub">Chọn loại câu rồi nhập đáp án đúng. Khi trình chiếu, học sinh chọn xong sẽ hiện đáp án đúng so với lựa chọn. Câu nhận diện từ Word đã điền sẵn; câu từ ảnh PDF cần bạn nhập.</p>
+<div id="keys"></div></div>
 <div class="card">
 <b id="cnt">Chưa có dữ liệu</b>
 <div id="list"></div>
@@ -389,6 +393,7 @@ function classify(cur){
   if(tfs.length>=2){
     type='tf';
     tfs.forEach(p=>{p.className='tfq';p.dataset.k=p.textContent.trim()[0];p.dataset.c=p.querySelector('.cm')?'1':'0'});
+    key=tfs.map(p=>p.dataset.c).join('');
   }else{
     const ops=splitOpts(cur.q,ds);
     if(ops.length>=2){
@@ -396,7 +401,7 @@ function classify(cur){
       let f=ops.filter(o=>o.querySelector('.cm'));
       const am=stext.match(/(?:Chọn|Đáp án)\s*:?\s*([A-D])\b/i);
       if(f.length!==1&&am)f=ops.filter(o=>o.dataset.k===am[1].toUpperCase());
-      if(f.length===1)ops.forEach(o=>o.dataset.c=o===f[0]?'1':'0');
+      if(f.length===1){ops.forEach(o=>o.dataset.c=o===f[0]?'1':'0');key=f[0].dataset.k}
     }else{
       const m=stext.match(/Đáp án\s*:?\s*(.+)/i);
       if(m){type='short';key=m[1].trim().replace(/[.\s]+$/,'');sol=sol.filter(b=>!/^\s*Đáp án/i.test(b.text))}
@@ -406,6 +411,23 @@ function classify(cur){
   return{html:ds.map(d=>d.innerHTML),type,key,sol};
 }
 
+function renderKeys(){
+  const items=slides.map((s,i)=>({s,i})).filter(x=>x.s.item);
+  $('keyBox').hidden=!items.length;
+  $('keys').innerHTML=items.map(x=>'<div class="kr" data-i="'+x.i+'"><b>'+esc(x.s.tag)+'</b> <select class="kt"><option value="">Không kiểm tra</option><option value="mcq">4 đáp án</option><option value="tf">Đúng/Sai</option><option value="short">Trả lời ngắn</option></select> <span class="kv"></span></div>').join('');
+  $('keys').querySelectorAll('.kr').forEach(r=>{const s=slides[r.dataset.i];r.querySelector('.kt').value=s.type||'';drawKv(r,s)});
+}
+function drawKv(r,s){
+  const kv=r.querySelector('.kv'),i=r.dataset.i,k=s.key||'';
+  if(s.type==='mcq')kv.innerHTML=['A','B','C','D'].map(x=>'<label><input type="radio" name="k'+i+'" value="'+x+'"'+(k===x?' checked':'')+'>'+x+'</label>').join('');
+  else if(s.type==='tf')kv.innerHTML=['a','b','c','d'].map((x,j)=>x+') <label><input type="radio" name="k'+i+x+'" data-j="'+j+'" value="1"'+(k[j]==='1'?' checked':'')+'>Đúng</label><label><input type="radio" name="k'+i+x+'" data-j="'+j+'" value="0"'+(k[j]==='0'?' checked':'')+'>Sai</label>').join(' ');
+  else if(s.type==='short')kv.innerHTML='<input class="ks" placeholder="Đáp số" value="'+esc(k).replace(/"/g,'&quot;')+'">';
+  else kv.textContent='';
+}
+$('keys').addEventListener('change',e=>{const t=e.target,r=t.closest('.kr');if(!r)return;const s=slides[r.dataset.i];
+  if(t.classList.contains('kt')){s.type=t.value;s.key=s.type==='tf'?'    ':'';drawKv(r,s)}
+  else if(t.type==='radio'){if(t.dataset.j!==undefined){const a=((s.key||'    ')+'    ').slice(0,4).split('');a[+t.dataset.j]=t.value;s.key=a.join('')}else s.key=t.value}});
+$('keys').addEventListener('input',e=>{const t=e.target;if(t.classList.contains('ks'))slides[t.closest('.kr').dataset.i].key=t.value.trim()});
 // ---------- Tách Câu / Bài / Ví dụ / Lời giải ----------
 const QRE=/^\s*((Câu|Bài tập|Bài|Ví dụ|VD|Example|Question)\s*\d+[a-z]?|(Ví dụ|VD)\b)\s*[.:)]?/i;
 const SRE=/^\s*((Lời giải|Hướng dẫn giải|Bài giải|Hướng dẫn|Đáp án|Solution)\b|(Giải|HD)\s*[:.])/i;
@@ -439,7 +461,7 @@ function segment(){
   const n=S.filter(s=>s.item).length;
   $('cnt').textContent=S.length+' slide ('+n+' câu/bài/ví dụ)';
   $('list').innerHTML=S.map((s,i)=>'<div>'+(i+1)+'. <b>'+esc(s.tag)+'</b> – '+s.steps.length+' bước</div>').join('');
-  ['play','dl','re'].forEach(k=>$(k).disabled=!S.length);
+  ['play','dl','re'].forEach(k=>$(k).disabled=!S.length);renderKeys();
 }
 
 // ---------- Trình phát (dùng cho cả xem thử và file xuất) ----------
@@ -460,7 +482,7 @@ math{font-size:1.1em}.fig{background:#fff;border-radius:6px;vertical-align:middl
 .tfq{padding:4px 10px;border-radius:10px;margin:6px 0}.tfq.ok{background:rgba(22,163,74,.18)}.tfq.no{background:rgba(220,38,38,.18)}
 .tfw{display:block;margin:4px 0 2px;font-size:.8em}.tfw label{margin-right:18px;cursor:pointer}.tfw input{width:1.1em;height:1.1em;vertical-align:middle}.rs{margin-left:8px}.rs.g{color:#16a34a}.rs.r{color:#dc2626}
 .sh{margin-top:18px;font-size:.8em}.sh input{font-size:1em;width:9em;padding:4px 8px;border:2px solid var(--ac);border-radius:8px;background:transparent;color:var(--tx)}.shb{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:6px 14px;font-size:1em;cursor:pointer}
-.sum{margin-top:12px;font-weight:700;color:var(--ac)}
+.sum{margin-top:12px;font-weight:700;color:var(--ac)}.gen{margin-top:18px}
 #bar{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;font-size:.9rem;border-top:1px solid var(--bd)}
 #bar button{background:none;border:1px solid var(--ac);color:var(--ac);border-radius:8px;padding:4px 10px;margin-left:6px;cursor:pointer}`;
   const js=`const S=${JSON.stringify(slides).replace(/</g,'\\u003c')};let i=0,k=1,fs=2;
@@ -473,13 +495,17 @@ const sel={};
 function G(){return sel[i]||(sel[i]={})}
 function nm(x){return x.trim().split(' ').join('').split(',').join('.')}
 function chk(){const inp=st.querySelector('.sh input');if(!inp||!inp.value.trim())return;const o=G(),a=nm(inp.value),b=nm(S[i].key),na=Number(a),nb=Number(b);o.v=inp.value;o.chk=(isFinite(na)&&isFinite(nb)&&a!==''&&b!==''?Math.abs(na-nb)<1e-9:a.toLowerCase()===b.toLowerCase())?'1':'0';A()}
-function A(){const s=S[i],o=G(),key=st.querySelector('.opt[data-c]');
+function A(){const s=S[i],o=G();
+ if(s.type==='mcq'||s.type==='tf'){const m=s.type==='mcq',k=s.key||'';let ops=[...st.querySelectorAll(m?'.opt':'.tfq')];
+  if(!ops.length){const g=document.createElement('div');g.className='gen';g.innerHTML=m?['A','B','C','D'].map(x=>'<span class="opt" data-k="'+x+'">'+x+'.</span>').join(''):['a','b','c','d'].map(x=>'<div class="tfq" data-k="'+x+'">'+x+')</div>').join('');st.querySelector('.b').appendChild(g);ops=[...g.children]}
+  ops.forEach((e,j)=>{const v=m?(k?(e.dataset.k===k?'1':'0'):''):k[j];if(v==='1'||v==='0')e.dataset.c=v;else delete e.dataset.c})}
+ const key=st.querySelector('.opt[data-c]');
  st.querySelectorAll('.opt').forEach(e=>{const c=e.dataset.k,rv=o.pick&&key;e.classList.toggle('sel',o.pick===c);e.classList.toggle('ok',!!rv&&e.dataset.c==='1');e.classList.toggle('no',!!rv&&o.pick===c&&e.dataset.c!=='1')});
  const tq=st.querySelectorAll('.tfq');let dn=0,gd=0;
  tq.forEach(e=>{const q=e.dataset.k;if(!e.querySelector('.tfw')){const w=document.createElement('span');w.className='tfw';w.innerHTML='<label><input type="checkbox" data-q="'+q+'" data-v="1"> Đúng</label><label><input type="checkbox" data-q="'+q+'" data-v="0"> Sai</label><b class="rs"></b>';e.appendChild(w)}
   const a=(o.tf||{})[q];e.querySelectorAll('input').forEach(x=>{x.checked=a===x.dataset.v});
   const r=e.querySelector('.rs');e.classList.remove('ok','no');r.textContent='';
-  if(a){dn++;const t=a===e.dataset.c;if(t)gd++;e.classList.add(t?'ok':'no');r.textContent=t?'✓ Chính xác':'✗ Đáp án: '+(e.dataset.c==='1'?'Đúng':'Sai')}});
+  if(a){dn++;if(e.dataset.c===undefined)r.textContent='Đã chọn';else{const t=a===e.dataset.c;if(t)gd++;e.classList.add(t?'ok':'no');r.textContent=t?'✓ Chính xác':'✗ Đáp án: '+(e.dataset.c==='1'?'Đúng':'Sai')}}});
  let sm=st.querySelector('.sum');
  if(tq.length&&dn===tq.length){if(!sm){sm=document.createElement('div');sm.className='sum';tq[tq.length-1].after(sm)}sm.textContent='Kết quả: '+gd+'/'+tq.length+' ý đúng'}else if(sm)sm.remove();
  if(s.type==='short'&&!st.querySelector('.sh')){const d=document.createElement('div');d.className='sh';d.innerHTML='<input type="text" inputmode="decimal" placeholder="Nhập đáp số"> <button class="shb">Kiểm tra</button> <b class="rs"></b>';d.firstChild.value=o.v||'';st.querySelector('.b').appendChild(d)}
