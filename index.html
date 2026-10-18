@@ -89,6 +89,7 @@ async function readDocx(buf0){
   if(rl)[...(await rl.async('string')).matchAll(/<Relationship\b[^>]*>/g)].forEach(m=>{const a=/\bId="([^"]+)"/.exec(m[0]),t=/\bTarget="([^"]+)"/.exec(m[0]);if(a&&t)rel[a[1]]=t[1].replace(/^\//,'').replace(/^(?!word\/)/,'word/')});
   xml=xml.replace(/<w:r(?:\s[^>]*)?>[\s\S]*?<\/w:r>/g,r=>{const p=/<w:rPr>[\s\S]*?<\/w:rPr>/.exec(r);if(!p)return r;const c=/<w:color w:val="([0-9A-Fa-f]{6})"/.exec(p[0]),u=/<w:u w:val="(?!none)\w+"/.test(p[0]);let red=false;if(c){const v=parseInt(c[1],16);red=(v>>16)>=0xB0&&(v>>8&255)<=0x60&&(v&255)<=0x60}return red||u?'<w:r><w:t>⟦C⟧</w:t></w:r>'+r:r});
   xml=xml.replace(/(<wp:extent cx="(\d+)" cy="(\d+)"\s*\/>[\s\S]*?<wp:docPr\b)([^>]*?)(\/?>)/g,(m,a,cx,cy,at,en)=>a+at.replace(/\sdescr="[^"]*"/,'')+' descr="IMGW'+cx+'x'+cy+'"'+en);
+  DIAG={omml:0,mt:0,old:0,img:0};
   const EQ=[],OB=[];
   xml=xml.replace(/<m:oMathPara>[\s\S]*?<\/m:oMathPara>|<m:oMath>[\s\S]*?<\/m:oMath>/g,x=>'<w:r><w:t>⟦EQ'+(EQ.push(omml(x))-1)+'⟧</w:t></w:r>')
    .replace(/<w:object\b[\s\S]*?<\/w:object>/g,x=>{const im=/<v:imagedata[^>]*r:id="([^"]+)"/.exec(x),sz=/width:([\d.]+)pt;height:([\d.]+)pt/.exec(x);
@@ -98,7 +99,7 @@ async function readDocx(buf0){
   const r=await mammoth.convertToHtml({arrayBuffer:buf},{convertImage:mammoth.images.imgElement(async im=>{if(/wmf|emf/i.test(im.contentType)){try{const r=vec2svg(new Uint8Array(await im.read()));return{src:'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(r.svg))),class:'fig',style:'width:'+(r.w/12)+'em'}}catch(e){return{src:'about:blank',alt:'⟦IMG⟧'}}}return{src:'data:'+im.contentType+';base64,'+await im.read('base64'),class:'fig'}})});
   const html=r.value.replace(/⟦C⟧/g,'<i class="cm"></i>').replace(/⟦EQ(\d+)⟧/g,(_,i)=>EQ[i]).replace(/⟦OB(\d+)⟧/g,(_,i)=>'<span class="mtobj" data-i="'+i+'"></span>');
   const doc=new DOMParser().parseFromString(html,'text/html');
-  FAIL=0;
+  FAIL=0;DIAG.omml=EQ.length;
   doc.querySelectorAll('img[alt^="IMGW"]').forEach(e=>{const m=/^IMGW(\d+)x(\d+)$/.exec(e.alt);if(m)e.style.width=(m[1]/12700/12)+'em';e.removeAttribute('alt')});
   doc.querySelectorAll('img[alt="⟦IMG⟧"]').forEach(e=>{FAIL++;e.outerHTML='<span class="mterr">[hình/công thức dạng WMF/EMF]</span>'});
   for(const sp of [...doc.querySelectorAll('.mtobj')]){const o=OB[+sp.dataset.i];let h;
@@ -123,9 +124,10 @@ async function readPdf(buf){
 async function renderObj(zip,o){
   try{
     const c=CFB.read(await zip.file(o.ole).async('uint8array'),{type:'array'}),e=CFB.find(c,'Equation Native'),u=new Uint8Array(e.content);
-    return mtef2mml(u.slice(u[0]|u[1]<<8));
+    const d=u.slice(u[0]|u[1]<<8);if(d[0]!==5){DIAG.old++;throw 0}
+    const r=mtef2mml(d);DIAG.mt++;return r;
   }catch(e){}
-  if(o.p&&zip.file(o.p)){const r=vec2svg(await zip.file(o.p).async('uint8array'));return '<img class="fig" style="height:'+(o.h/12)+'em" src="data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(r.svg)))+'">'}
+  if(o.p&&zip.file(o.p)){DIAG.img++;const r=vec2svg(await zip.file(o.p).async('uint8array'));return '<img class="fig" style="height:'+(o.h/12)+'em" src="data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(r.svg)))+'">'}
   throw 0;
 }
 // ---------- Vẽ lại hình EMF/WMF thành SVG ----------
@@ -304,10 +306,12 @@ function mtef2mml(u8){
   throw new Error('mtef');
 }
 
+const E0=t=>t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let DIAG={omml:0,mt:0,old:0,img:0};
 function omml(x){
   const MN='http://schemas.openxmlformats.org/officeDocument/2006/math';
-  const d=new DOMParser().parseFromString('<root xmlns:m="'+MN+'" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+x+'</root>','application/xml');
-  if(d.querySelector('parsererror'))return '';
+  const d=new DOMParser().parseFromString('<root xmlns:m="'+MN+'" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'+x+'</root>','application/xml');
+  if(d.querySelector('parsererror'))return '<span>'+(x.match(/<m:t[^>]*>[^<]*<\/m:t>/g)||[]).map(t=>E0(t.replace(/<[^>]+>/g,''))).join('')+'</span>';
   const E=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const ch=(n,t)=>[...n.children].find(e=>e.localName===t);
   const kids=n=>[...n.childNodes].map(c=>c.nodeType===1?cv(c):'').join('');
@@ -529,7 +533,7 @@ async function handle(file){
     if(/\.pdf$/i.test(file.name)){await ocrPdf(buf);return}
     $('ocrBox').hidden=true;$('edBox').hidden=true;
     blocks=await readDocx(buf);
-    $('st').textContent='Đã đọc '+blocks.length+' đoạn từ '+file.name+(/\.docx$/i.test(file.name)&&FAIL?' · '+FAIL+' hình/công thức chưa hiển thị được (ảnh WMF/EMF)':'');
+    $('st').textContent='Đã đọc '+blocks.length+' đoạn từ '+file.name+(/\.docx$/i.test(file.name)?' · công thức: '+DIAG.omml+' Equation, '+DIAG.mt+' MathType'+(DIAG.old?', '+DIAG.old+' Equation 3.0 cũ (hiện bằng ảnh xem trước)':''):'')+(/\.docx$/i.test(file.name)&&FAIL?' · '+FAIL+' hình/công thức chưa hiển thị được (ảnh WMF/EMF)':'');
     segment();
   }catch(e){$('st').textContent='Lỗi đọc file: '+e.message}
 }
