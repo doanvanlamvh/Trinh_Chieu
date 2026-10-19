@@ -59,6 +59,7 @@ button:disabled{opacity:.4;cursor:default}
 </div>
 <div class="card" id="keyBox" hidden><b>Đáp án đúng từng câu</b>
 <p class="sub">Chọn loại câu rồi nhập đáp án đúng. Khi trình chiếu, học sinh chọn xong sẽ hiện đáp án đúng so với lựa chọn. Câu nhận diện từ Word đã điền sẵn; câu từ ảnh PDF cần bạn nhập.</p>
+<div class="o"><b>Nhập nhanh từ bảng đáp án (ảnh, Word hoặc PDF):</b> <button class="g" id="kBtn">Chọn file bảng đáp án</button><input type="file" id="kf" accept="image/*,.pdf,.docx" hidden> <span id="kmsg" class="sub"></span></div>
 <div id="keys"></div></div>
 <div class="card" id="showBox">
 <b id="cnt">Chưa có dữ liệu</b>
@@ -708,6 +709,94 @@ $('keys').addEventListener('change',updateExInfo);$('keys').addEventListener('in
 $('exPlay').onclick=()=>{$('fr').srcdoc=examHTML();$('ov').style.display='block'};
 $('exDl').onclick=async()=>{const h=examHTML(),n=($('exTitle').value.trim()||fname)+'-bai-kiem-tra.html';if(claudeDl){try{await claudeDl.save({filename:n,data:h});return}catch(e){if(e.code==='declined')return}}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download=n;a.click()};
 $('exWin').onclick=()=>{const w=window.open(URL.createObjectURL(new Blob([examHTML()],{type:'text/html'})),'_blank');if(!w)$('exInfo').textContent+=' (Trình duyệt chặn cửa sổ mới, hãy dùng nút Tải bài kiểm tra .html.)'};
+// ---------- Nhập bảng đáp án (ảnh / Word / PDF) ----------
+function runs(text,tokRe,kind,group){
+  const tk=[];let m;tokRe.lastIndex=0;while((m=tokRe.exec(text)))tk.push({k:kind(m[0]),v:m[0]});
+  const out={};let i=0;
+  while(i<tk.length){
+    const nums=[];while(i<tk.length&&tk[i].k==='n'){nums.push(+tk[i].v);i++}
+    const ans=[];while(i<tk.length&&tk[i].k==='a'){ans.push(tk[i].v);i++}
+    if(nums.length&&ans.length===nums.length*group)nums.forEach((n,j)=>{out[n]=ans.slice(j*group,j*group+group).join('')});
+    else if(!nums.length&&!ans.length)i++;
+  }
+  return out;
+}
+function parseKeyText(T){
+  T=T.replace(/\u00a0/g,' ');
+  const re=/(?:PHẦN|Phần)\s*(III|II|I|3|2|1)\b/g,idx=[],MAPP={I:1,1:1,II:2,2:2,III:3,3:3};let m;
+  while((m=re.exec(T)))idx.push({p:MAPP[m[1]],i:m.index,e:m.index+m[0].length});
+  const sec={1:'',2:'',3:''};
+  if(idx.length)idx.forEach((x,j)=>{sec[x.p]+=T.slice(x.e,j+1<idx.length?idx[j+1].i:T.length)+'\n'});else sec[1]=T;
+  const arr=o=>Object.keys(o).map(Number).sort((a,b)=>a-b).map(n=>({n,a:o[n]}));
+  const K={mcq:arr(runs(sec[1],/\d{1,3}|(?<![\p{L}])[A-D](?![\p{L}])/gu,t=>/^\d/.test(t)?'n':'a',1)),tf:[],short:[]};
+  // đúng/sai
+  const t2=sec[2].replace(/Đáp\s*án|Đáp\s*số|Câu/gi,' ').replace(/\b[a-d]\s*[-–:)]/g,' ').replace(/đúng/gi,'Đ').replace(/sai/gi,'S');
+  const tf=runs(t2,/\d{1,3}|[ĐS]/gu,t=>/\d/.test(t)?'n':'a',4);
+  K.tf=arr(tf).map(x=>({n:x.n,a:x.a.split('').map(c=>c==='Đ'?'1':'0').join('')}));
+  // trả lời ngắn: "Câu n: giá trị" hoặc hai hàng Câu / Đáp án
+  const sh={};
+  for(const q of sec[3].matchAll(/(?:Câu\s*)?(\d{1,2})\s*[.:)\-–]\s*(-?[\d.,/]+)(?![\d.,/])/g))sh[+q[1]]=q[2].replace(/[.,]$/,'');
+  if(!Object.keys(sh).length)sec[3].split('\n').forEach((ln,j,L)=>{
+    const p=/^\s*(?:Câu\s*)?(\d{1,2})\s*[.:)\-–]\s*(.+?)\s*$/.exec(ln);if(p){sh[+p[1]]=p[2];return}
+    if(/^\s*Câu\b/i.test(ln)&&L[j+1]&&/^\s*Đáp/i.test(L[j+1])){
+      const c=s=>s.split(/\s*\|\s*|\t+|\s{2,}/).map(x=>x.trim()).filter(Boolean).slice(1),a=c(ln),b=c(L[j+1]);
+      a.forEach((n,k)=>{if(/^\d+$/.test(n)&&b[k]!==undefined)sh[+n]=b[k]});
+    }
+  });
+  K.short=arr(sh);
+  return K;
+}
+function applyKey(K){
+  const items=slides.filter(s=>s.item),ord=['mcq','tf','short'],L={};
+  ord.forEach(t=>{L[t]=(K[t]||[]).slice().sort((a,b)=>a.n-b.n)});
+  const total=L.mcq.length+L.tf.length+L.short.length;let msg;
+  if(!total)msg='Không đọc được đáp án nào trong file này.';
+  else if(items.length===total){let j=0;ord.forEach(t=>L[t].forEach(a=>{const s=items[j++];s.type=t;s.key=a.a}));
+    msg='Đã nhập đáp án cho '+total+' câu theo đúng thứ tự (đã tự chọn loại câu: '+L.mcq.length+' trắc nghiệm, '+L.tf.length+' đúng-sai, '+L.short.length+' trả lời ngắn).'}
+  else{let c=0;ord.forEach(t=>{const its=items.filter(s=>s.type===t);L[t].forEach((a,i)=>{if(its[i]){its[i].key=a.a;c++}})});
+    msg='Bảng đáp án có '+total+' câu nhưng web đã tách '+items.length+' câu, nên chỉ nhập được '+c+' câu theo loại câu đã nhận diện. Hãy kiểm tra lại bên dưới.'}
+  renderKeys();updateExInfo();$('kmsg').textContent=msg;
+}
+async function imgBlob(f){
+  const b=await createImageBitmap(f),k=Math.min(1,1800/Math.max(b.width,b.height)),c=document.createElement('canvas');
+  c.width=b.width*k;c.height=b.height*k;c.getContext('2d').drawImage(b,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+}
+async function pdfBlobs(buf,max){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='';
+  const pdf=await pdfjsLib.getDocument({data:buf.slice(0)}).promise,out=[];
+  for(let p=1;p<=Math.min(pdf.numPages,max);p++){const pg=await pdf.getPage(p),vp=pg.getViewport({scale:1.8}),cv=document.createElement('canvas');
+    cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.85)))}
+  return out;
+}
+const KPROMPT='Đây là BẢNG ĐÁP ÁN của một đề Toán (có thể gồm PHẦN I trắc nghiệm A/B/C/D, PHẦN II đúng-sai, PHẦN III trả lời ngắn). Hãy đọc đúng và trả về DUY NHẤT một JSON, không giải thích, không dùng ```: {"mcq":[{"n":1,"a":"A"}],"tf":[{"n":1,"a":"ĐSĐS"}],"short":[{"n":1,"a":"12,5"}]}. "n" là số thứ tự câu trong phần của nó (mỗi phần đánh số lại từ 1). Với đúng-sai, "a" gồm 4 ký tự Đ hoặc S theo thứ tự ý a), b), c), d). Phần nào không có thì để mảng rỗng.';
+async function aiKey(blobs,text){
+  await Promise.race([sampleP,new Promise(r=>setTimeout(r,12000))]);
+  if(!claudeSample)throw new Error('Claude chưa kết nối được trong cửa sổ này (hãy mở trang trong claude.ai)');
+  const r=await claudeSample(text?KPROMPT+'\\n\\nNỘI DUNG BẢNG:\\n'+text:KPROMPT,{images:blobs||[],cache:false});
+  const j=JSON.parse(r.text.replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*$/,'$1'));
+  const f=(v,tf)=>(v||[]).map(x=>({n:+x.n,a:tf?String(x.a).split('').map(c=>/[Đđ1]/.test(c)?'1':'0').join(''):String(x.a).trim()}));
+  return{mcq:f(j.mcq),tf:f(j.tf,1),short:f(j.short)};
+}
+const nKey=K=>K.mcq.length+K.tf.length+K.short.length;
+async function importKey(file){
+  const st=$('kmsg');st.textContent='Đang đọc bảng đáp án…';
+  try{
+    const buf=await file.arrayBuffer();let K={mcq:[],tf:[],short:[]};
+    if(/\.docx$/i.test(file.name)){
+      const r=await mammoth.convertToHtml({arrayBuffer:buf}),d=new DOMParser().parseFromString(r.value,'text/html');
+      const text=[...d.body.children].map(e=>e.tagName==='TABLE'?[...e.rows].map(tr=>[...tr.cells].map(c=>c.textContent.trim()).join(' | ')).join('\n'):e.textContent).join('\n');
+      K=parseKeyText(text);if(!nKey(K))K=await aiKey([],text);
+    }else if(/\.pdf$/i.test(file.name)){
+      const bl=await readPdf(buf);K=parseKeyText(bl.map(b=>b.text).join('\n'));
+      if(!nKey(K)){st.textContent='PDF dạng ảnh, nhờ Claude đọc…';K=await aiKey(await pdfBlobs(buf,4))}
+    }else{st.textContent='Nhờ Claude đọc ảnh bảng đáp án…';K=await aiKey([await imgBlob(file)])}
+    applyKey(K);
+  }catch(e){st.textContent='Không nhập được: '+(e.code==='not_granted'?'bạn chưa cho phép dùng Claude':(e.message||e.code||e))}
+}
+$('kBtn').onclick=()=>$('kf').click();
+$('kf').onchange=e=>{if(e.target.files[0])importKey(e.target.files[0]);e.target.value=''};
+
 $('drop').onclick=()=>$('f').click();
 $('f').onchange=e=>handle(e.target.files[0]);
 $('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('on')};
