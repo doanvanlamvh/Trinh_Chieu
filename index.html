@@ -457,17 +457,25 @@ function buildEx(ds,type){
   const stem=cl.map(d=>d.innerHTML).join('').replace(/<p>\s*<\/p>/g,'');
   return{stem,opts,sts};
 }
+const ESSAY_VERB=/^\s*[a-d]\s*[.)]\s*\*?\s*(Tính|Tìm|Chứng minh|Chứng tỏ|Giải|Xác định|Vẽ|Rút gọn|Viết|Hãy|Lập|Khảo sát|Biện luận|So sánh|Phân tích|Trình bày|Thực hiện|Tìm hiểu|Cho biết|Hỏi)\b/i;
+const ESSAY_STEM=/(chứng minh|trình bày|giải thích|vẽ\s+(đồ thị|hình)|tự luận)/i;
 function classify(cur){
   const ds=cur.q.map(b=>mk(b.html));
   let sol=cur.s.slice(),type='',key='';
   const stext=sol.map(b=>b.text).join(' ');
   const tfs=[];
   cur.q.forEach((b,i)=>{if(/^\s*[a-d]\s*[.)]/.test(b.text)&&ds[i].firstElementChild)tfs.push(ds[i].firstElementChild)});
-  if(tfs.length>=2){
+  const tfL=tfs.map(p=>p.textContent.trim()[0].toLowerCase()),tfOK=['a','b','c','d'].every(l=>tfL.includes(l)),
+    marked=tfs.some(p=>p.querySelector('.cm')||/^\s*[a-d]\s*[.)]\s*\*/.test(p.textContent)),
+    impN=tfs.filter(p=>ESSAY_VERB.test(p.textContent)).length,essayish=impN>0&&impN*2>=tfs.length;
+  if(cur.essay){type='essay'}
+  else if(tfs.length>=2&&tfOK&&!(essayish&&!marked)){
     type='tf';
     tfs.forEach(p=>{p.className='tfq';p.dataset.k=p.textContent.trim()[0];p.dataset.c=(p.querySelector('.cm')||/^\s*[a-d]\s*[.)]\s*\*/.test(p.textContent))?'1':'0';stripLead(p,/^(\s*[a-d]\s*[.)])\s*\*\s*/,'$1 ')});
     key=tfs.map(p=>p.dataset.c).join('');
     if(!/1/.test(key)){const mm=[...stext.matchAll(/(?<![\p{L}\d])([a-d])\s*[-–:]\s*(đúng|sai)/giu)];if(mm.length>=2){tfs.forEach(p=>{const r=mm.find(x=>x[1].toLowerCase()===p.dataset.k);if(r)p.dataset.c=/đúng/i.test(r[2])?'1':'0'});key=tfs.map(p=>p.dataset.c).join('')}}
+  }else if(tfs.length>=2){
+    type='essay'; // có ý a) b) nhưng không đủ 4 ý a,b,c,d (hoặc là các yêu cầu Tính/Tìm/Chứng minh…) → Tự luận
   }else{
     const ops=splitOpts(cur.q,ds);
     if(ops.length>=2){
@@ -479,6 +487,7 @@ function classify(cur){
     }else{
       const m=stext.match(/(?:Đáp án|Đáp số)\s*:?\s*(.+)/i);
       if(m){type='short';key=m[1].trim().replace(/[.\s]+$/,'');sol=sol.filter(b=>!/^\s*(Đáp án|Đáp số)/i.test(b.text))}
+      else if(sol.length||ESSAY_STEM.test(cur.q.map(b=>b.text).join(' ')))type='essay';
     }
   }
   ds.forEach(d=>d.querySelectorAll('.cm').forEach(e=>e.remove()));
@@ -488,7 +497,7 @@ function classify(cur){
 function renderKeys(){
   const items=slides.map((s,i)=>({s,i})).filter(x=>x.s.item);
   $('keyBox').hidden=!items.length;updateExInfo();
-  $('keys').innerHTML=items.map(x=>'<div class="kr" data-i="'+x.i+'"><b>'+esc(x.s.tag)+'</b> <select class="kt"><option value="">Không kiểm tra</option><option value="mcq">4 đáp án</option><option value="tf">Đúng/Sai</option><option value="short">Trả lời ngắn</option></select> <span class="kv"></span></div>').join('');
+  $('keys').innerHTML=items.map(x=>'<div class="kr" data-i="'+x.i+'"><b>'+esc(x.s.tag)+'</b> <select class="kt"><option value="">Không kiểm tra</option><option value="mcq">4 đáp án</option><option value="tf">Đúng/Sai</option><option value="short">Trả lời ngắn</option><option value="essay">Tự luận</option></select> <span class="kv"></span></div>').join('');
   $('keys').querySelectorAll('.kr').forEach(r=>{const s=slides[r.dataset.i];r.querySelector('.kt').value=s.type||'';drawKv(r,s)});
 }
 function drawKv(r,s){
@@ -496,6 +505,7 @@ function drawKv(r,s){
   if(s.type==='mcq')kv.innerHTML=['A','B','C','D'].map(x=>'<label><input type="radio" name="k'+i+'" value="'+x+'"'+(k===x?' checked':'')+'>'+x+'</label>').join('');
   else if(s.type==='tf')kv.innerHTML=['a','b','c','d'].map((x,j)=>x+') <label><input type="radio" name="k'+i+x+'" data-j="'+j+'" value="1"'+(k[j]==='1'?' checked':'')+'>Đúng</label><label><input type="radio" name="k'+i+x+'" data-j="'+j+'" value="0"'+(k[j]==='0'?' checked':'')+'>Sai</label>').join(' ');
   else if(s.type==='short')kv.innerHTML='<input class="ks" placeholder="Đáp số" value="'+esc(k).replace(/"/g,'&quot;')+'">';
+  else if(s.type==='essay')kv.innerHTML='<span style="color:var(--mu)">Tự luận — không chấm tự động</span>';
   else kv.textContent='';
 }
 $('keys').addEventListener('change',e=>{const t=e.target,r=t.closest('.kr');if(!r)return;const s=slides[r.dataset.i];
@@ -524,10 +534,15 @@ function segment(){
     }
     S.push({tag:cur.tag,steps,item:1,type:cl.type,key:cl.key,ex:cl.ex,solHtml:cl.sol.map(b=>b.html).join('')});cur=null;
   };
+  let essay=false;
+  const SEC=/^\s*(?:(?:PHẦN|Phần)\s*)?(?:[IVX]+|\d+)?\s*[.:)\-–]?\s*(tự\s*luận|trắc\s*nghiệm|đúng\s*[-–]?\s*sai|trả\s*lời\s*ngắn)/i;
   blocks.forEach(b=>{
-    if(b.h||HRE.test(b.text)){flushI();plain.push(b);return}
+    const sm=b.text.length<=90&&!QRE.test(b.text)?SEC.exec(b.text):null;
+    if(sm||b.h||HRE.test(b.text)){flushI();
+      if(b.text.length<=90){if(/tự\s*luận/i.test(b.text))essay=true;else if(/trắc\s*nghiệm|đúng\s*[-–]?\s*sai|trả\s*lời\s*ngắn/i.test(b.text))essay=false}
+      plain.push(b);return}
     const m=b.text.match(QRE);
-    if(m){flushP();flushI();cur={tag:m[0].trim().replace(/[.:)]$/,''),q:[b],s:[],mode:'q'};return}
+    if(m){flushP();flushI();cur={tag:m[0].trim().replace(/[.:)]$/,''),q:[b],s:[],mode:'q',essay};return}
     if(cur){if(SRE.test(b.text))cur.mode='s';cur[cur.mode].push(b)}else plain.push(b);
   });
   flushI();flushP();
@@ -1102,9 +1117,9 @@ $('toSlides').onclick=()=>{
 };
 
 function updateExInfo(){
-  const it=slides.filter(s=>s.item),ty=it.filter(s=>s.type),n=t=>ty.filter(s=>s.type===t).length;
+  const it=slides.filter(s=>s.item),ty=it.filter(s=>s.type&&s.type!=='essay'),n=t=>ty.filter(s=>s.type===t).length,ne=it.filter(s=>s.type==='essay').length;
   const nokey=ty.filter(s=>s.type==='tf'?!/[01]/.test(s.key||''):!s.key).length;
-  $('exInfo').textContent=ty.length?('Bài thi có '+ty.length+' câu: '+n('mcq')+' trắc nghiệm, '+n('tf')+' đúng-sai, '+n('short')+' trả lời ngắn.'+(it.length-ty.length?' '+(it.length-ty.length)+' câu chưa chọn loại sẽ bị bỏ qua.':'')+(nokey?' '+nokey+' câu chưa có đáp án đúng.':'')):'Chưa có câu nào được chọn loại. Hãy tải file lên rồi chọn loại và đáp án ở mục “Đáp án đúng từng câu”.';
+  $('exInfo').textContent=ty.length?('Bài thi có '+ty.length+' câu: '+n('mcq')+' trắc nghiệm, '+n('tf')+' đúng-sai, '+n('short')+' trả lời ngắn.'+(ne?' '+ne+' câu tự luận (không chấm tự động nên không đưa vào bài thi).':'')+(it.length-ty.length-ne?' '+(it.length-ty.length-ne)+' câu chưa chọn loại sẽ bị bỏ qua.':'')+(nokey?' '+nokey+' câu chưa có đáp án đúng.':'')):(ne?ne+' câu tự luận (không chấm tự động). Chưa có câu trắc nghiệm / đúng-sai / trả lời ngắn nào để tạo bài thi.':'Chưa có câu nào được chọn loại. Hãy tải file lên rồi chọn loại và đáp án ở mục “Đáp án đúng từng câu”.');
   ['exPlay','exDl','exWin'].forEach(k=>$(k).disabled=!ty.length);
 }
 function examHTML(){
