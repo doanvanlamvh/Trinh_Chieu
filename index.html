@@ -41,7 +41,17 @@ button:disabled{opacity:.4;cursor:default}
 #tb button,#sedTb button{padding:5px 10px;margin:2px 4px 2px 0;font-size:.95rem}
 .ovl{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:14px}.ovl[hidden]{display:none}
 .mbox{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:16px;padding:18px;width:min(820px,100%);max-height:94vh;overflow:auto}
-#fm,#crop{z-index:70}
+#fm,#crop,#lk{z-index:70}#lkm{z-index:65}#plan{z-index:62}
+.pls{border:1px solid var(--bd);border-radius:12px;margin:8px 0;overflow:hidden}.plh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;background:var(--bd);color:#2b2118;font-size:.92rem}.plh b{color:#9a3412}
+.plh .chip{font-size:.75rem;background:#fff9;border-radius:99px;padding:1px 8px}
+.plb{display:flex;align-items:center;gap:6px;padding:4px 10px;border-top:1px solid var(--bd);font-size:.88rem}.plb .plt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plb button,.plh button{padding:2px 8px;margin:0;font-size:.82rem}
+.lkmr{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--bd)}.lkmr small{flex:1;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lkmr button{padding:3px 9px;margin:0}
+#list .sl{background:var(--ac);color:#fff;border-color:var(--ac)}
+#lk label.f{display:block;margin:10px 0 3px;font-size:.9rem;color:var(--mu)}
+#lk input[type=text],#lk select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font:inherit}
+#lk .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}#lkHint{font-size:.85rem;color:var(--mu);margin:6px 0}
+a.lk{color:#2563eb;text-decoration:underline;cursor:pointer}a.lk::before{content:"🔗 "}
+a.lk[data-ty=img]::before{content:"🖼 "}a.lk[data-ty=vid]::before{content:"🎬 "}a.lk[data-ty=aud]::before{content:"🔊 "}a.lk[data-ty=ppt]::before{content:"📊 "}a.lk[data-ty=doc]::before{content:"📄 "}a.lk[data-ty=xls]::before{content:"📈 "}a.lk[data-ty=pdf]::before{content:"📕 "}a.lk[data-ty=html]::before,a.lk[data-ty=web]::before{content:"🌐 "}
 .mbox h3{margin:.1em 0 .4em;color:var(--ac)}
 #fmPal button{padding:3px 8px;margin:2px;font-size:.9rem}
 #fmI{width:100%;font:15px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
@@ -78,7 +88,7 @@ button:disabled{opacity:.4;cursor:default}
 <div id="tabs"><button class="tab on" data-t="show">▶ Trình chiếu từng câu</button><button class="tab" data-t="exam">📝 Tạo bài kiểm tra</button></div>
 <div class="card" id="ocrBox" hidden><b>Nhận dạng PDF bằng AI (OCR)</b><p id="ocrS" class="sub"></p><button class="g" id="ocrStop" hidden>Dừng</button></div>
 <div class="card" id="edBox" hidden><b>Trang tạm – sửa như Word</b>
-<div id="tb"><button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="red" style="color:#fff;background:#e00000">Đỏ</button><button data-c="black" class="g">Bỏ đỏ</button><button data-c="undo" class="g">↶</button><button data-c="redo" class="g">↷</button><button data-c="mf" class="g">∑ + Công thức (LaTeX)</button><button data-c="img" class="g">🖼 + Ảnh</button><button data-c="dollar" class="g" title="Đổi mọi đoạn $…$ trong trang thành công thức hiển thị chuẩn">$…$ → công thức</button></div>
+<div id="tb"><button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="red" style="color:#fff;background:#e00000">Đỏ</button><button data-c="black" class="g">Bỏ đỏ</button><button data-c="undo" class="g">↶</button><button data-c="redo" class="g">↷</button><button data-c="mf" class="g">∑ + Công thức (LaTeX)</button><button data-c="img" class="g">🖼 + Ảnh</button><button data-c="lk" class="g" title="Gắn liên kết vào chữ đang chọn (mở PowerPoint, Word, .html, video, ảnh, PDF, YouTube… khi trình chiếu)">🔗 Liên kết vào chữ</button><button data-c="dollar" class="g" title="Đổi mọi đoạn $…$ trong trang thành công thức hiển thị chuẩn">$…$ → công thức</button></div>
 <div id="page" class="edroot" contenteditable="true" spellcheck="false"></div>
 <p class="sub">Bấm vào <b>ảnh</b> để sửa (cắt, xoay, lật, đổi cỡ, thay ảnh, xóa, đổi thành công thức) · bấm đúp vào <b>công thức</b> để sửa bằng LaTeX.</p>
 <p class="sub">Chữ <b>đỏ</b> hoặc <u>gạch chân</u> trong câu 4 đáp án và câu đúng/sai sẽ được dùng làm đáp án đúng (và được ẩn đi khi trình chiếu).</p>
@@ -86,7 +96,8 @@ button:disabled{opacity:.4;cursor:default}
 <div class="card" id="optBox">
 <label class="o"><input type="checkbox" id="oLine"> Lời giải hiện từng dòng (mặc định: hiện cả lời giải sau 1 lần bấm)</label>
 <label class="o"><input type="checkbox" id="oPlain" checked> Nội dung không phải Câu/Bài hiện theo từng dòng</label>
-<button class="g" id="re" disabled>Tách lại</button>
+<label class="o">Nội dung thường: tối đa <input type="number" id="oChunk" value="8" min="1" max="40" style="width:64px"> dòng mỗi slide</label>
+<button class="g" id="re" disabled>Tách lại</button> <button id="planBtn" disabled title="Gộp slide, tách slide, đổi vị trí từng khối nội dung bằng tay — hữu ích cho bài dài">✂ Dự kiến tách slide</button>
 </div>
 <div class="card" id="keyBox" hidden><b>Đáp án đúng từng câu</b>
 <p class="sub">Chọn loại câu rồi nhập đáp án đúng. Khi trình chiếu, học sinh chọn xong sẽ hiện đáp án đúng so với lựa chọn. Câu nhận diện từ Word đã điền sẵn; câu từ ảnh PDF cần bạn nhập.</p>
@@ -110,6 +121,25 @@ button:disabled{opacity:.4;cursor:default}
 </main>
 <div id="toast" hidden></div>
 <div id="imgTb" hidden><button class="g" data-o="replace" title="Thay bằng ảnh khác">🖼 Thay</button><button class="g" data-o="crop" title="Cắt ảnh">✂ Cắt</button><button class="g" data-o="rl" title="Xoay trái 90°">⟲</button><button class="g" data-o="rr" title="Xoay phải 90°">⟳</button><button class="g" data-o="fh" title="Lật ngang">⇆</button><button class="g" data-o="fv" title="Lật dọc">⇅</button><button class="g" data-o="smaller" title="Thu nhỏ">−</button><button class="g" data-o="bigger" title="Phóng to">+</button><button class="g" data-o="tex" title="Xóa ảnh này và nhập công thức LaTeX thay thế">∑ Thành công thức</button><button class="g" data-o="del" title="Xóa ảnh (phím Delete)">🗑</button></div>
+<div class="ovl" id="plan" hidden><div class="mbox" style="width:min(900px,100%)"><h3>✂ Dự kiến tách slide <small id="plSum" class="muted"></small></h3>
+<div class="muted" style="font-size:.9rem">Xem từng slide gồm những khối nào rồi chỉnh tay: <b>↑ Gộp</b> slide vào slide trước · <b>✂ Tách từ đây</b> để bắt đầu slide mới · <b>⬆ ⬇</b> đổi vị trí khối. Chỉnh sửa chữ, loại câu, đáp án, nút liên kết của slide không đổi sẽ được giữ lại.</div>
+<div style="margin:8px 0;display:flex;gap:8px;flex-wrap:wrap"><button class="g" id="plAuto">↺ Chia lại tự động (bỏ chỉnh tay)</button><button id="plDone">Xong</button></div>
+<div id="plL" style="max-height:62vh;overflow:auto"></div></div></div>
+<div class="ovl" id="lkm" hidden><div class="mbox" style="width:min(640px,100%)"><h3 id="lkmT">🔗 Nút liên kết</h3>
+<div class="muted" style="font-size:.9rem">Mỗi liên kết là một <b>nút</b> hiện dưới nội dung slide khi trình chiếu. Bấm nút là mở PowerPoint, Word, Excel, trang .html, video, ảnh, PDF, YouTube…</div>
+<div id="lkmL" style="margin:10px 0"></div>
+<div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button id="lkmAdd">＋ Thêm nút liên kết</button><button class="g" id="lkmClose">Xong</button></div></div></div>
+<div class="ovl" id="lk" hidden><div class="mbox" style="width:min(640px,100%)"><h3>🔗 Liên kết khi trình chiếu</h3>
+<div class="muted" style="font-size:.9rem">Gắn vào chữ đang chọn (hoặc nhập chữ mới). Khi trình chiếu, bấm vào chữ này sẽ mở PowerPoint, Word, Excel, trang .html, video, ảnh, PDF, YouTube…</div>
+<label class="f" for="lkT">Chữ hiển thị</label><input type="text" id="lkT" placeholder="VD: Xem video minh họa">
+<label class="f" for="lkU">Địa chỉ (URL hoặc đường dẫn file)</label><input type="text" id="lkU" placeholder="https://…   hoặc   bai-giang.pptx   hoặc   C:\Tai-lieu\phim.mp4">
+<div class="row"><button class="g" id="lkPick">📁 Chọn file từ máy…</button><span id="lkFn" class="muted"></span></div>
+<label class="o"><input type="checkbox" id="lkEmb"> Nhúng file vào bài (mở được trên mọi máy, nhưng file .html tải về sẽ nặng thêm bằng dung lượng file)</label>
+<label class="o" id="lkQvL" hidden><input type="checkbox" id="lkQv"> <b>Xem nhanh</b> ngay trong trình chiếu (đổi nội dung Word/PowerPoint thành trang xem được trong trình duyệt; chữ và ảnh, không giữ bố cục gốc; file gốc không được kèm theo)</label>
+<label class="f" for="lkM">Cách mở khi trình chiếu</label>
+<select id="lkM"><option value="pop">Cửa sổ nổi ngay trên slide (ảnh, video, trang web, PDF… đóng bằng Esc)</option><option value="tab">Mở tab mới / tải về và mở bằng ứng dụng (PowerPoint, Word, Excel…)</option></select>
+<div id="lkHint"></div>
+<div class="row"><button id="lkOk">Chèn liên kết</button><button class="g" id="lkNo">Hủy</button><button class="g" id="lkDel" hidden>Gỡ liên kết</button></div></div></div>
 <div class="ovl" id="fm" hidden><div class="mbox" style="width:min(680px,100%)"><h3>Công thức Toán (LaTeX)</h3>
 <div id="fmPal"></div>
 <textarea id="fmI" rows="3" spellcheck="false" placeholder="Nhập LaTeX, ví dụ: \frac{-b\pm\sqrt{b^2-4ac}}{2a}"></textarea>
@@ -119,7 +149,7 @@ button:disabled{opacity:.4;cursor:default}
 <div class="ovl" id="crop" hidden><div class="mbox" style="width:auto;max-width:96vw"><h3>Cắt ảnh</h3><div class="sub">Kéo chuột (hoặc ngón tay) trên ảnh để chọn vùng cần giữ.</div><div id="cropV"></div><button id="cropOk" type="button">✂ Cắt</button><button class="g" id="cropAll" type="button">Chọn cả ảnh</button><button class="g" id="cropNo" type="button">Hủy</button></div></div>
 <div class="ovl" id="sed" hidden><div class="mbox"><h3 id="sedT">Sửa slide</h3>
 <input id="sedTag" class="ti" style="width:100%;margin-bottom:6px" placeholder="Tiêu đề slide (ví dụ: Câu 1)">
-<div id="sedTb"><button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="undo" class="g">↶</button><button data-c="redo" class="g">↷</button><button data-c="mf" class="g">∑ + Công thức (LaTeX)</button><button data-c="img" class="g">🖼 + Ảnh</button><button data-c="dollar" class="g">$…$ → công thức</button></div>
+<div id="sedTb"><button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="undo" class="g">↶</button><button data-c="redo" class="g">↷</button><button data-c="mf" class="g">∑ + Công thức (LaTeX)</button><button data-c="img" class="g">🖼 + Ảnh</button><button data-c="lk" class="g" title="Gắn liên kết vào chữ đang chọn">🔗 Liên kết vào chữ</button><button data-c="dollar" class="g">$…$ → công thức</button></div>
 <p class="sub" style="margin:4px 0">Bấm vào ảnh để sửa ảnh · bấm đúp công thức để sửa LaTeX · dán ảnh từ clipboard được.</p>
 <div id="sedBody"></div>
 <button id="sedOk" type="button">💾 Lưu slide</button><button class="g" id="sedPrev" type="button">Lưu &amp; slide kế ▶</button><button class="g" id="sedNo" type="button">Hủy</button></div></div>
@@ -516,13 +546,17 @@ $('keys').addEventListener('input',e=>{const t=e.target;if(t.classList.contains(
 const QRE=/^\s*((Câu|Bài tập|Bài|Ví dụ|VD|Example|Question)\s*\d+[a-z]?|(Ví dụ|VD)\b)\s*[.:)]?/i;
 const SRE=/^\s*((Lời giải|Hướng dẫn giải|Bài giải|Hướng dẫn|Đáp án|Solution)\b|(Giải|HD)\s*[:.])/i;
 const HRE=/^\s*(PHẦN|CHƯƠNG|Phần|Chương|ĐỀ)\b/;
+const hsh=t=>{let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return t.length+':'+h};
 function segment(){
-  const line=$('oLine').checked,plainLine=$('oPlain').checked;
+  const line=$('oLine').checked,plainLine=$('oPlain').checked,CH=Math.max(1,Math.min(40,+$('oChunk').value||8));
+  const old=slides||[];blocks.forEach((b,i)=>b._i=i);
   const S=[];let cur=null,plain=[];
+  const rg=a=>{const i=a.map(x=>x._i);return[Math.min(...i),Math.max(...i)+1]};
+  const sg=(o,a)=>{const r=rg(a);o.b0=r[0];o.b1=r[1];o.sig=hsh(blocks.slice(r[0],r[1]).map(x=>x.html).join('\u0001'));return o};
   const flushP=()=>{
     if(!plain.length)return;
-    if(plainLine)for(let i=0;i<plain.length;i+=8)S.push({tag:'Nội dung',steps:plain.slice(i,i+8).map(b=>b.html)});
-    else S.push({tag:'Nội dung',steps:[plain.map(b=>b.html).join('')]});
+    if(plainLine)for(let i=0;i<plain.length;i+=CH)S.push(sg({tag:'Nội dung',steps:plain.slice(i,i+CH).map(b=>b.html)},plain.slice(i,i+CH)));
+    else S.push(sg({tag:'Nội dung',steps:[plain.map(b=>b.html).join('')]},plain));
     plain=[];
   };
   const flushI=()=>{
@@ -532,25 +566,34 @@ function segment(){
       if(line)cl.sol.forEach(b=>steps.push('<div class="sol">'+b.html+'</div>'));
       else steps.push('<div class="sol">'+cl.sol.map(b=>b.html).join('')+'</div>');
     }
-    S.push({tag:cur.tag,steps,item:1,type:cl.type,key:cl.key,ex:cl.ex,solHtml:cl.sol.map(b=>b.html).join('')});cur=null;
+    S.push(sg({tag:cur.tag,steps,item:1,type:cl.type,key:cl.key,ex:cl.ex,solHtml:cl.sol.map(b=>b.html).join('')},[...cur.q,...cur.s]));cur=null;
   };
   let essay=false;
   const SEC=/^\s*(?:(?:PHẦN|Phần)\s*)?(?:[IVX]+|\d+)?\s*[.:)\-–]?\s*(tự\s*luận|trắc\s*nghiệm|đúng\s*[-–]?\s*sai|trả\s*lời\s*ngắn)/i;
   blocks.forEach(b=>{
+    if(b.fs){flushP();flushI()}
     const sm=b.text.length<=90&&!QRE.test(b.text)?SEC.exec(b.text):null;
     if(sm||b.h||HRE.test(b.text)){flushI();
       if(b.text.length<=90){if(/tự\s*luận/i.test(b.text))essay=true;else if(/trắc\s*nghiệm|đúng\s*[-–]?\s*sai|trả\s*lời\s*ngắn/i.test(b.text))essay=false}
       plain.push(b);return}
-    const m=b.text.match(QRE);
+    const m=b.fn?null:b.text.match(QRE);
     if(m){flushP();flushI();cur={tag:m[0].trim().replace(/[.:)]$/,''),q:[b],s:[],mode:'q',essay};return}
     if(cur){if(SRE.test(b.text))cur.mode='s';cur[cur.mode].push(b)}else plain.push(b);
   });
   flushI();flushP();
+  const used=new Set();
+  S.forEach(n=>{const o=old.find((x,j)=>!used.has(j)&&x.sig&&x.sig===n.sig&&(used.add(j),true));
+    if(!o)return;if(o.links)n.links=o.links;if(o.type)n.type=o.type;if(o.key)n.key=o.key;
+    if(o.edited){n.steps=o.steps;n.tag=o.tag;n.ex=o.ex;n.solHtml=o.solHtml;n.edited=true}});
+  // slide mới do gộp/tách: nút liên kết của slide cũ nằm trong phạm vi vẫn được giữ
+  old.forEach((o,j)=>{if(used.has(j)||!o.links||o.b0==null)return;
+    const t=S.find(n=>!n.links&&n.b0<=o.b0&&o.b0<n.b1)||S.find(n=>n.b0<=o.b0&&o.b0<n.b1);
+    if(t)t.links=(t.links||[]).concat(o.links)});
   slides=S;
   const n=S.filter(s=>s.item).length;
   $('cnt').textContent=S.length+' slide ('+n+' câu/bài/ví dụ)';
-  slidesEdited=false;drawList();
-  ['play','dl','re'].forEach(k=>$(k).disabled=!S.length);renderKeys();
+  slidesEdited=S.some(x=>x.edited||x.links);drawList();
+  ['play','dl','re','planBtn'].forEach(k=>$(k).disabled=!S.length);renderKeys();
 }
 
 // ---------- Trình phát (dùng cho cả xem thử và file xuất) ----------
@@ -576,14 +619,32 @@ math{font-size:1.1em}.fig{background:#fff;border-radius:6px;vertical-align:middl
 #bar button{background:none;border:1px solid var(--ac);color:var(--ac);border-radius:8px;padding:4px 10px;margin-left:6px;cursor:pointer}
 #bar select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:4px 6px;margin-left:6px;font-size:.9rem}
 .mf{display:inline-block;vertical-align:middle}.mf[data-d]{display:block;text-align:center;margin:.4em 0}.mf svg{max-width:100%}
-.kw{font-weight:700!important;font-style:normal!important;color:#1d4ed8}#tag{color:#1d4ed8}@media(prefers-color-scheme:dark){.kw,#tag{color:#60a5fa}}`;
+.kw{font-weight:700!important;font-style:normal!important;color:#1d4ed8}#tag{color:#1d4ed8}@media(prefers-color-scheme:dark){.kw,#tag{color:#60a5fa}}
+.lkb{margin-top:28px;display:flex;flex-wrap:wrap;gap:14px}
+#st a.lkbtn{display:inline-flex;align-items:center;gap:.5em;background:var(--ac);color:#fff!important;text-decoration:none!important;border-radius:999px;padding:.3em 1.1em;font-size:.72em;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer}
+#st a.lkbtn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+a.lkbtn[data-ty=img]::before{content:"🖼"}a.lkbtn[data-ty=vid]::before{content:"🎬"}a.lkbtn[data-ty=aud]::before{content:"🔊"}a.lkbtn[data-ty=ppt]::before{content:"📊"}a.lkbtn[data-ty=doc]::before{content:"📄"}a.lkbtn[data-ty=xls]::before{content:"📈"}a.lkbtn[data-ty=pdf]::before{content:"📕"}a.lkbtn[data-ty=html]::before,a.lkbtn[data-ty=web]::before{content:"🌐"}a.lkbtn[data-ty=file]::before{content:"📎"}
+a.lk,#st a[href]{color:#2563eb;text-decoration:underline;cursor:pointer;border-radius:6px}@media(prefers-color-scheme:dark){a.lk,#st a[href]{color:#60a5fa}}
+a.lk::before{content:"🔗 "}a.lk[data-ty=img]::before{content:"🖼 "}a.lk[data-ty=vid]::before{content:"🎬 "}a.lk[data-ty=aud]::before{content:"🔊 "}a.lk[data-ty=ppt]::before{content:"📊 "}a.lk[data-ty=doc]::before{content:"📄 "}a.lk[data-ty=xls]::before{content:"📈 "}a.lk[data-ty=pdf]::before{content:"📕 "}a.lk[data-ty=html]::before,a.lk[data-ty=web]::before{content:"🌐 "}
+#lko{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.9);display:flex;flex-direction:column;font-family:system-ui,sans-serif;user-select:text}
+#lko .tb{display:flex;align-items:center;gap:8px;padding:8px 14px;color:#fff;font-size:.95rem}#lko .tb span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lko .tb button{background:#fff2;color:#fff;border:1px solid #fff6;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.95rem}
+#lko .bd{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:0 12px 12px}
+#lko iframe{width:100%;height:100%;border:0;background:#fff;border-radius:8px}#lko img{max-width:100%;max-height:100%;object-fit:contain}#lko video{max-width:100%;max-height:100%}`;
   const js=`${makeFX.toString()}
 ${KW.toString()}
+${lkType.toString()}
+${lkFix.toString()}
+${lkClose.toString()}
+${lkShell.toString()}
+${lkBtn.toString()}
+${lkOpen.toString()}
 const FTC=${JSON.stringify(ftCfg())};
 const FXL=makeFX();let FXE=${JSON.stringify(fxEff)},FXMS=${fxMs};
 const S=${JSON.stringify(slides).replace(/</g,'\\u003c')};let i=0,k=1,fs=FTC.fs;
 const st=document.getElementById('st'),tg=document.getElementById('tag'),inf=document.getElementById('inf');
-function R(){const s=S[i];tg.textContent=s.tag;st.innerHTML=s.steps.slice(0,k).map((h,j)=>'<div class="b">'+h+'</div>').join('');KW(st);A();st.scrollTop=st.scrollHeight;inf.textContent='Slide '+(i+1)+'/'+S.length+' · bước '+k+'/'+s.steps.length}
+function LB(s){if(!s.links||!s.links.length)return;const d=document.createElement('div');d.className='lkb';s.links.forEach(l=>{const a=document.createElement('a');a.className='lkbtn';a.href=l.u;a.textContent=l.t;a.dataset.ty=l.ty;a.dataset.m=l.m;if(l.f)a.dataset.f=l.f;if(l.q)a.dataset.q='1';d.appendChild(a)});st.appendChild(d)}
+function R(){const s=S[i];tg.textContent=s.tag;st.innerHTML=s.steps.slice(0,k).map((h,j)=>'<div class="b">'+h+'</div>').join('');KW(st);LB(s);A();st.scrollTop=st.scrollHeight;inf.textContent='Slide '+(i+1)+'/'+S.length+' · bước '+k+'/'+s.steps.length}
 function T(d,f){const o=FXE!=='none'?FXL.snap(st):null;f();if(o)FXL.play(o,st,FXE,FXMS,d)}
 function N(){if(k<S[i].steps.length){k++;R()}else if(i<S.length-1){T(1,()=>{i++;k=1;R()})}else R()}
 function P(){if(k>1){k--;R()}else if(i>0){T(-1,()=>{i--;k=S[i].steps.length;R()})}else R()}
@@ -607,10 +668,10 @@ function A(){const s=S[i],o=G();
  if(tq.length&&dn===tq.length){if(!sm){sm=document.createElement('div');sm.className='sum';tq[tq.length-1].after(sm)}sm.textContent='Kết quả: '+gd+'/'+tq.length+' ý đúng'}else if(sm)sm.remove();
  if(s.type==='short'&&!st.querySelector('.sh')){const d=document.createElement('div');d.className='sh';d.innerHTML='<input type="text" inputmode="decimal" placeholder="Nhập đáp số"> <button class="shb">Kiểm tra</button> <b class="rs"></b>';d.firstChild.value=o.v||'';st.querySelector('.b').appendChild(d)}
  const rs=st.querySelector('.sh .rs');if(rs){rs.textContent=o.chk?(o.chk==='1'?'✓ Chính xác!':'✗ Chưa đúng. Đáp án: '+s.key):'';rs.className='rs '+(o.chk==='1'?'g':o.chk==='0'?'r':'')}}
-st.onclick=e=>{const t=e.target;if(t.closest('.shb')){chk();return}if(t.closest('.tfw')||t.closest('.sh'))return;const op=t.closest('.opt');if(op){const o=G();o.pick=o.pick===op.dataset.k?'':op.dataset.k;A();return}N()};
+st.onclick=e=>{const t=e.target;const lka=t.closest('a[href]');if(lka){e.preventDefault();e.stopPropagation();lkOpen(lka);return}if(t.closest('.shb')){chk();return}if(t.closest('.tfw')||t.closest('.sh'))return;const op=t.closest('.opt');if(op){const o=G();o.pick=o.pick===op.dataset.k?'':op.dataset.k;A();return}N()};
 st.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.q){const o=G();(o.tf=o.tf||{})[t.dataset.q]=t.checked?t.dataset.v:'';A()}});
 st.addEventListener('input',e=>{if(e.target.closest('.sh'))G().v=e.target.value});
-document.onkeydown=e=>{if(e.target.tagName==='INPUT'){if(e.key==='Enter')chk();return}if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();N()}else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();P()}else if(e.key==='Home'){T(-1,()=>{i=0;k=1;R()})}else if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}};
+document.onkeydown=e=>{if(document.getElementById('lko')){if(e.key==='Escape'){e.preventDefault();lkClose()}return}if(e.target.tagName==='INPUT'){if(e.key==='Enter')chk();return}if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();N()}else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();P()}else if(e.key==='Home'){T(-1,()=>{i=0;k=1;R()})}else if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}};
 {const r=document.documentElement.style;r.setProperty('--ff',FTC.ff);r.setProperty('--fw',FTC.fw);r.setProperty('--fst',FTC.fst);r.setProperty('--fs',fs+'rem')}
 const fe=document.getElementById('fe');fe.innerHTML=FXL.EFFECTS.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('');fe.value=FXE;fe.onchange=()=>{FXE=fe.value;fe.blur()};fe.onkeydown=e=>e.stopPropagation();
 document.getElementById('a1').onclick=()=>Z(.25);document.getElementById('a2').onclick=()=>Z(-.25);
@@ -621,7 +682,7 @@ R();`;
 
 // ---------- Giao diện ----------
 async function handle(file){
-  if(!file)return;fname=file.name.replace(/\.[^.]+$/,'');$('exTitle').value=fname;
+  if(!file)return;fname=file.name.replace(/\.[^.]+$/,'');$('exTitle').value=fname;slides=[];
   $('st').textContent='Đang đọc '+file.name+'…';
   try{
     const buf=await file.arrayBuffer();
@@ -966,7 +1027,7 @@ function placeImgTb(){if(!selImg)return;const r=selImg.getBoundingClientRect(),t
 function hideImgTb(){if(selImg)selImg.classList.remove('imgsel');selImg=null;$('imgTb').hidden=true}
 function selectPic(e){if(selImg)selImg.classList.remove('imgsel');selImg=e;e.classList.add('imgsel');placeImgTb()}
 document.addEventListener('click',e=>{
-  if(e.target.closest('#imgTb')||e.target.closest('#crop')||e.target.closest('#fm'))return;
+  if(e.target.closest('#imgTb')||e.target.closest('#crop')||e.target.closest('#fm')||e.target.closest('#lk'))return;
   const root=rootOf(e.target);
   if(!root){hideImgTb();return}
   if(e.target.closest('.mf'))return hideImgTb();
@@ -979,7 +1040,7 @@ document.addEventListener('dblclick',e=>{
   if(m){e.preventDefault();formulaFor(root,m)}
 },true);
 addEventListener('scroll',()=>{if(selImg)placeImgTb()},true);addEventListener('resize',()=>{if(selImg)placeImgTb()});
-document.addEventListener('keydown',e=>{if(selImg&&(e.key==='Delete')&&!e.target.closest('#fm')&&document.activeElement&&!getSelection().toString()){const p=selImg;hideImgTb();p.remove()}});
+document.addEventListener('keydown',e=>{if(selImg&&(e.key==='Delete')&&!e.target.closest('#fm')&&!e.target.closest('#lk')&&document.activeElement&&!getSelection().toString()){const p=selImg;hideImgTb();p.remove()}});
 
 function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('Không đọc được ảnh'));i.src=src})}
 function svgToUrl(svg){const c=svg.cloneNode(true),r=svg.getBoundingClientRect();if(!c.getAttribute('xmlns'))c.setAttribute('xmlns','http://www.w3.org/2000/svg');
@@ -1051,6 +1112,7 @@ $('cropOk').onclick=()=>{const r=cropR;if(r.w<4||r.h<4){alert('Hãy kéo chuột
 
 // ---- Thanh công cụ dùng chung ----
 async function runTool(c,root){
+  if(c==='lk'){openLk(root);return}
   if(c==='mf'){formulaFor(root,null);return}
   if(c==='img'){const f=await pickFile('image/*');if(f)insertImageFile(root,f);return}
   if(c==='dollar'){const r=await convertDollar(useRoot(root));toast(r.cnt?('Đã chuyển '+r.cnt+' công thức'+(r.bad?(', '+r.bad+' đoạn lỗi LaTeX giữ nguyên'):'')):'Không thấy đoạn $…$ nào để chuyển');return}
@@ -1063,6 +1125,205 @@ function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout
 $('tb').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(c)runTool(c,$('page'))};
 $('sedTb').onmousedown=e=>{if(e.target.tagName==='BUTTON')e.preventDefault()};
 $('sedTb').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(c)runTool(c,lastRoot&&$('sed').contains(lastRoot)?lastRoot:$('sedBody').querySelector('.edroot'))};
+
+// ---------- Liên kết khi trình chiếu (dùng cả ở trình soạn và trình phát) ----------
+function lkType(u,m,f){
+  u=String(u||'');m=String(m||'');f=String(f||'');
+  if(/^data:/i.test(u)){var e=u.indexOf(';'),c=u.indexOf(',');m=u.slice(5,e>0&&e<c?e:c)}
+  var p=(f||u).split(/[?#]/)[0].toLowerCase();
+  if(/\.(pptx?|ppsx?|potx?|odp)$/.test(p)||/presentationml|powerpoint/.test(m))return 'ppt';
+  if(/\.(docx?|dotx?|rtf|odt)$/.test(p)||/wordprocessingml|msword/.test(m))return 'doc';
+  if(/\.(xlsx?|xlsm|csv|ods)$/.test(p)||/spreadsheetml|ms-excel/.test(m))return 'xls';
+  if(/^image\//.test(m)||/\.(jpe?g|png|gif|webp|svg|bmp|avif|ico)$/.test(p))return 'img';
+  if(/^video\//.test(m)||/\.(mp4|webm|ogv|mov|m4v|mkv)$/.test(p)||/(youtu\.be|youtube\.com|vimeo\.com)/i.test(u))return 'vid';
+  if(/^audio\//.test(m)||/\.(mp3|wav|m4a|aac|oga|flac)$/.test(p))return 'aud';
+  if(m==='application/pdf'||/\.pdf$/.test(p))return 'pdf';
+  if(m==='text/html'||/\.(html?|xhtml)$/.test(p))return 'html';
+  if(/^https?:/i.test(u))return 'web';
+  return 'file';
+}
+function lkFix(h){
+  h=String(h||'').trim();
+  if(/^[a-zA-Z]:[\\\/]/.test(h))return 'file:///'+encodeURI(h.replace(/\\/g,'/'));
+  if(/^\\\\/.test(h))return 'file:'+encodeURI(h.replace(/\\/g,'/'));
+  if(/^www\./i.test(h))return 'https://'+h;
+  if(/^[a-z][a-z0-9+.\-]*:/i.test(h))return h;
+  h=h.replace(/\\/g,'/');
+  return /%[0-9a-f]{2}/i.test(h)?h:encodeURI(h);
+}
+function lkClose(){var o=document.getElementById('lko');if(o){var v=o.querySelector('video,audio');if(v)v.pause();if(o.dataset.u)try{URL.revokeObjectURL(o.dataset.u)}catch(e){}o.remove()}}
+function lkShell(title){
+  var o=document.createElement('div');o.id='lko';
+  var tb=document.createElement('div');tb.className='tb';var sp=document.createElement('span');sp.textContent=title;tb.appendChild(sp);
+  var body=document.createElement('div');body.className='bd';
+  o.addEventListener('click',function(e){if(e.target===o||e.target===body)lkClose()});
+  o.appendChild(tb);o.appendChild(body);document.body.appendChild(o);return {o:o,tb:tb,body:body};
+}
+function lkBtn(tb,txt,fn){var b=document.createElement('button');b.textContent=txt;b.onclick=function(e){e.stopPropagation();fn()};tb.appendChild(b);return b}
+async function lkOpen(a){
+  var raw=a.getAttribute('href')||'',f=a.dataset.f||'',mode=a.dataset.m||'pop',t=a.dataset.ty||lkType(raw,'',f),h=lkFix(raw),u=h,blobUrl='';
+  if(a.dataset.q)t='html';
+  if(/^(mailto|tel):/i.test(h)){location.href=h;return}
+  var isData=/^data:/i.test(h);
+  if(isData){try{var bl=await (await fetch(h)).blob();blobUrl=URL.createObjectURL(bl);u=blobUrl}catch(e){}}
+  var office=(t==='ppt'||t==='doc'||t==='xls'),isHttp=/^https?:/i.test(h),title=a.textContent||f||raw.slice(0,80);
+  function card(){
+    var s=lkShell(title);if(blobUrl)s.o.dataset.u=blobUrl;
+    var c=document.createElement('div');c.style.cssText='background:#fff;color:#111;border-radius:16px;padding:28px 34px;max-width:620px;text-align:center;font-size:1.05rem;line-height:1.6';
+    var kind={ppt:'PowerPoint',doc:'Word',xls:'Excel'}[t]||'tệp';
+    var p=document.createElement('p');p.innerHTML='';p.textContent='Trình duyệt không mở trực tiếp được file '+kind+' ('+(f||raw.split('/').pop())+'). '+(isData?'Bấm nút dưới để tải về, rồi bấm vào file vừa tải ở thanh tải xuống để mở bằng '+kind+'.':'Bấm nút dưới: trình duyệt sẽ tải file về (hoặc mở nếu máy cho phép); bấm vào file vừa tải để mở bằng '+kind+'. Lần sau hãy dùng “Xem nhanh” khi gắn liên kết nếu muốn xem ngay trong trình chiếu.');
+    c.appendChild(p);
+    var go=document.createElement('a');go.textContent=isData?'⬇ Tải về để mở':'↗ Mở file';go.href=u;go.target='_blank';go.rel='noopener';if(isData)go.download=f||'tep';
+    go.style.cssText='display:inline-block;margin-top:8px;background:#ea580c;color:#fff;text-decoration:none;border-radius:999px;padding:10px 26px;font-weight:700';
+    c.appendChild(go);s.body.appendChild(c);lkBtn(s.tb,'✕ Đóng (Esc)',lkClose);
+  }
+  function ext(){
+    if(blobUrl&&(office||t==='file')){var d=document.createElement('a');d.href=u;d.download=f||'tep';document.body.appendChild(d);d.click();d.remove();return}
+    var w=window.open(u,'_blank');if(!w){lkClose();card()}
+  }
+  if(mode==='tab'&&isHttp){ext();return}
+  if(office&&!(isHttp&&mode==='pop')||t==='file'){card();return}
+  if(mode==='tab'){ext();return}
+  var src=u;
+  if(office&&isHttp)src='https://view.officeapps.live.com/op/embed.aspx?src='+encodeURIComponent(h);
+  var yt=/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/))([\w\-]{6,})/i.exec(h),vm=/vimeo\.com\/(\d+)/i.exec(h),gd=/drive\.google\.com\/file\/d\/([\w\-]+)/i.exec(h);
+  if(yt)src='https://www.youtube.com/embed/'+yt[1]+'?autoplay=1&rel=0';else if(vm)src='https://player.vimeo.com/video/'+vm[1]+'?autoplay=1';else if(gd)src='https://drive.google.com/file/d/'+gd[1]+'/preview';
+  var s=lkShell(title);if(blobUrl)s.o.dataset.u=blobUrl;
+  lkBtn(s.tb,'↗ Mở tab mới',ext);lkBtn(s.tb,'✕ Đóng (Esc)',lkClose);
+  var el;
+  if(t==='img'){el=document.createElement('img');el.src=src}
+  else if(t==='vid'&&!yt&&!vm&&!gd){el=document.createElement('video');el.src=src;el.controls=true;el.autoplay=true}
+  else if(t==='aud'){el=document.createElement('audio');el.src=src;el.controls=true;el.autoplay=true}
+  else{el=document.createElement('iframe');el.src=src;el.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';el.allowFullscreen=true}
+  s.body.appendChild(el);
+}
+
+async function pptxToHtml(buf,name){
+  const z=await JSZip.loadAsync(buf),rd=async p=>{const f=z.file(p);return f?await f.async('string'):''};
+  const dec=t=>t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+  const pres=await rd('ppt/presentation.xml'),prel=await rd('ppt/_rels/presentation.xml.rels'),map={};
+  for(const m of prel.matchAll(/<Relationship\b[^>]*>/g)){const i=/Id="([^"]+)"/.exec(m[0]),t=/Target="([^"]+)"/.exec(m[0]);if(i&&t)map[i[1]]=t[1]}
+  let paths=[...pres.matchAll(/<p:sldId\b[^>]*r:id="([^"]+)"/g)].map(m=>map[m[1]]).filter(Boolean).map(t=>t.replace(/^\/?(ppt\/)?/,'ppt/'));
+  if(!paths.length)paths=Object.keys(z.files).filter(p=>/^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>a.match(/\d+/)-b.match(/\d+/));
+  const mime={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',svg:'image/svg+xml',bmp:'image/bmp',webp:'image/webp'};
+  let out='';
+  for(let n=0;n<paths.length;n++){
+    const x=await rd(paths[n]),rel=await rd(paths[n].replace('slides/','slides/_rels/')+'.rels'),rm={};
+    for(const m of rel.matchAll(/<Relationship\b[^>]*>/g)){const i=/Id="([^"]+)"/.exec(m[0]),t=/Target="([^"]+)"/.exec(m[0]);if(i&&t)rm[i[1]]=t[1]}
+    const ps=[...x.matchAll(/<a:p\b[\s\S]*?<\/a:p>/g)].map(m=>dec([...m[0].matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)].map(t=>t[1]).join(''))).filter(t=>t.trim());
+    let im='';
+    for(const m of x.matchAll(/r:embed="([^"]+)"/g)){const t=rm[m[1]];if(!t)continue;const p=t.startsWith('/')?t.slice(1):('ppt/slides/'+t).replace(/[^\/]+\/\.\.\//g,''),ext=(p.split('.').pop()||'').toLowerCase(),f=z.file(p);
+      if(f&&mime[ext])im+='<img src="data:'+mime[ext]+';base64,'+await f.async('base64')+'">'}
+    out+='<section><h2>Slide '+(n+1)+'</h2>'+ps.map((t,i)=>(i===0?'<h3>':'<p>')+esc(t)+(i===0?'</h3>':'</p>')).join('')+im+'</section>';
+  }
+  return '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>'+esc(name)+'</title><style>body{font:18px/1.6 system-ui,Segoe UI,sans-serif;max-width:980px;margin:0 auto;padding:16px;background:#f7f7f7;color:#111}section{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px 22px;margin:14px 0}h2{margin:0 0 4px;color:#c2410c;font-size:.9rem}h3{margin:.2em 0}img{max-width:100%;height:auto;display:block;margin:8px 0}</style></head><body><p style="color:#777;font-size:.85rem">Xem nhanh nội dung PowerPoint: chỉ gồm chữ và ảnh, không giữ bố cục/hiệu ứng gốc.</p>'+out+'</body></html>';
+}
+async function docxToHtml(buf,name){
+  const bl=await readDocx(buf);
+  return '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>'+esc(name)+'</title><style>body{font:18px/1.7 system-ui,Segoe UI,sans-serif;max-width:900px;margin:0 auto;padding:16px 22px;background:#fff;color:#111}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:4px 8px}.hid{display:none}.mf{display:inline-block;vertical-align:middle}.mf[data-d]{display:block;text-align:center}</style></head><body>'+bl.map(b=>b.html).join('')+'</body></html>';
+}
+const toB64=str=>{const u=new TextEncoder().encode(str);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
+const lkAttr=v=>String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+let lkFile=null,lkEl=null,lkRoot=null,lkMan=false,lkSel='';
+function lkFill(){
+  const u=$('lkU').value.trim(),f=lkFile?lkFile.name:'',ty=lkType(u,lkFile?lkFile.type:'',f||u.split(/[\\\/]/).pop());
+  if(!lkMan)$('lkM').value=(ty==='ppt'||ty==='doc'||ty==='xls'||ty==='file')?'tab':'pop';
+  const msg={ppt:'PowerPoint không mở được ngay trong trình duyệt: bấm sẽ tải về/mở bằng PowerPoint. Nếu là địa chỉ web công khai, chọn “Cửa sổ nổi” để xem ngay bằng Office Online.',
+    doc:'Word không mở được ngay trong trình duyệt: bấm sẽ tải về/mở bằng Word. Nếu là địa chỉ web công khai, chọn “Cửa sổ nổi” để xem bằng Office Online.',
+    xls:'Excel không mở được ngay trong trình duyệt: bấm sẽ tải về/mở bằng Excel.',
+    img:'Ảnh sẽ hiện to ngay trên slide.',vid:'Video hiện ngay trên slide (hỗ trợ cả link YouTube, Vimeo).',aud:'Âm thanh phát ngay trên slide.',
+    pdf:'PDF hiện ngay trên slide.',html:'Trang .html hiện ngay trên slide.',web:'Một số trang web không cho nhúng; khi đó bấm “↗ Mở tab mới” trong cửa sổ nổi.',file:'Mở bằng ứng dụng mặc định của máy.'}[ty]||'';
+  const qvOK=!!(lkFile&&/\.(docx|pptx)$/i.test(lkFile.name));$('lkQvL').hidden=!qvOK;if(qvOK&&$('lkQv').checked){$('lkEmb').checked=true;if(!lkMan)$('lkM').value='pop'}
+  let note='';
+  if(lkFile&&!$('lkEmb').checked)note=' Không nhúng: hãy để file “'+f+'” cạnh file .html khi trình chiếu (đường dẫn tương đối); xem thử bằng nút ▶ trong trang này có thể không mở được.';
+  if(lkFile&&$('lkEmb').checked)note=' Dung lượng nhúng ≈ '+(lkFile.size/1048576).toFixed(1)+' MB'+(lkFile.size>25*1048576?' (khá nặng, nên dùng đường dẫn thay vì nhúng).':'.');
+  $('lkHint').textContent=msg+note;
+}
+let lkCb=null,lkPrev=null;
+function openLk(root,el,cb,prev){
+  lkCb=cb||null;lkPrev=prev||null;
+  lkRoot=root||lastRoot||$('page');lkFile=null;lkMan=false;lkEl=el||null;lkSel='';
+  if(!lkCb&&!lkEl&&savedRange&&lkRoot.contains(savedRange.startContainer)){
+    const n=savedRange.startContainer,e=n.nodeType===1?n:n.parentElement,a=e&&e.closest?e.closest('a[href]'):null;
+    if(a&&lkRoot.contains(a))lkEl=a;else lkSel=savedRange.toString();
+  }
+  $('lkFn').textContent='';$('lkEmb').checked=false;$('lkDel').hidden=!lkEl;
+  if(lkPrev){$('lkT').value=lkPrev.t;$('lkU').value=/^data:/i.test(lkPrev.u)?'':lkPrev.u;$('lkM').value=lkPrev.m;lkMan=true;if(/^data:/i.test(lkPrev.u))$('lkFn').textContent='(file đã nhúng: '+(lkPrev.f||'')+')';$('lkOk').textContent='Cập nhật'}
+  else if(lkEl){const h=lkEl.getAttribute('href')||'';$('lkT').value=lkEl.textContent;$('lkU').value=/^data:/i.test(h)?'':h;
+    $('lkM').value=lkEl.dataset.m||'pop';lkMan=true;if(/^data:/i.test(h))$('lkFn').textContent='(file đã nhúng: '+(lkEl.dataset.f||'')+')';$('lkOk').textContent='Cập nhật liên kết'}
+  else{$('lkT').value=lkSel.trim();$('lkU').value='';$('lkM').value='pop';$('lkOk').textContent=lkCb?'Thêm nút':'Chèn liên kết'}
+  lkFill();$('lk').hidden=false;setTimeout(()=>$('lkU').focus(),30);
+}
+$('lkU').oninput=()=>{lkFile=null;$('lkFn').textContent='';lkFill()};
+$('lkM').onchange=()=>{lkMan=true};$('lkEmb').onchange=lkFill;$('lkQv').onchange=()=>{if($('lkQv').checked)lkMan=false;lkFill()};
+$('lkPick').onclick=async()=>{const f=await pickFile('*/*');if(!f)return;lkFile=f;$('lkFn').textContent='📎 '+f.name+' ('+(f.size/1048576).toFixed(1)+' MB)';
+  if(!$('lkU').value.trim()||!$('lkU').dataset.user)$('lkU').value=f.name;if(!$('lkT').value.trim())$('lkT').value=f.name.replace(/\.[^.]+$/,'');lkMan=false;$('lkQv').checked=/\.(docx|pptx)$/i.test(f.name);lkFill()};
+$('lkNo').onclick=()=>{$('lk').hidden=true;lkEl=null;lkFile=null;lkCb=null;lkPrev=null};
+$('lkDel').onclick=()=>{if(lkEl){const t=document.createTextNode(lkEl.textContent);lkEl.replaceWith(t)}$('lk').hidden=true;lkEl=null;toast('Đã gỡ liên kết')};
+$('lkOk').onclick=async()=>{
+  const cb0=lkCb,prev0=lkPrev;let u=$('lkU').value.trim(),f='',q=false;const m=$('lkM').value;
+  if(lkFile&&$('lkQv').checked&&/\.(docx|pptx)$/i.test(lkFile.name)){
+    try{$('lkOk').disabled=true;toast('Đang chuyển file để xem nhanh…');const buf=await lkFile.arrayBuffer(),nm=lkFile.name.replace(/\.[^.]+$/,'');
+      const html=/\.pptx$/i.test(lkFile.name)?await pptxToHtml(buf,nm):await docxToHtml(buf,nm);u='data:text/html;charset=utf-8;base64,'+toB64(html);f=lkFile.name;q=true}
+    catch(e){toast('Không chuyển được file: '+e.message);return}finally{$('lkOk').disabled=false}
+  }else if(lkFile&&$('lkEmb').checked){
+    if(lkFile.size>25*1048576&&!confirm('File nặng '+(lkFile.size/1048576).toFixed(0)+' MB, nhúng sẽ làm file .html rất nặng. Vẫn nhúng?'))return;
+    u=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsDataURL(lkFile)});f=lkFile.name;
+    if(/^data:(;|,)/.test(u)||/^data:application\/octet-stream/.test(u)){/* giữ nguyên, loại suy theo tên file */}
+  }else if(lkEl&&!u&&/^data:/i.test(lkEl.getAttribute('href')||'')){u=lkEl.getAttribute('href');f=lkEl.dataset.f||'';q=!!lkEl.dataset.q}
+  else if(prev0&&!u&&/^data:/i.test(prev0.u)){u=prev0.u;f=prev0.f||'';q=!!prev0.q}
+  if(!u){toast('Hãy nhập địa chỉ hoặc chọn file');return}
+  const ty=lkType(u,'',f||(lkFile?lkFile.name:u.split(/[\\\/]/).pop())),label=$('lkT').value.trim()||f||(lkFile&&lkFile.name)||u.replace(/^https?:\/\/(www\.)?/i,'').slice(0,60);
+  const h='<a class="lk" href="'+lkAttr(u)+'" data-ty="'+ty+'" data-m="'+m+'"'+(f?' data-f="'+lkAttr(f)+'"':'')+(q?' data-q="1"':'')+'>'+esc(label)+'</a>';
+  $('lk').hidden=true;
+  if(cb0){lkCb=null;lkPrev=null;lkFile=null;cb0({t:label,u,f,ty,m,q});return}
+  if(lkEl&&lkRoot&&lkRoot.contains(lkEl)){lkEl.insertAdjacentHTML('afterend',h);lkEl.remove();toast('Đã cập nhật liên kết')}
+  else{insertHTMLAt(lkRoot,h+'&nbsp;');toast('Đã chèn liên kết')}
+  lkEl=null;lkFile=null;
+};
+
+
+// ---- Màn hình Dự kiến tách slide ----
+function planDraw(){
+  const box=$('plL'),top=box.scrollTop;
+  $('plSum').textContent='· '+slides.length+' slide · '+blocks.length+' khối';
+  const pv=b=>esc((b.text||(/<img|<svg/.test(b.html)?'[ảnh / hình]':/<table/.test(b.html)?'[bảng]':'[trống]')).slice(0,140));
+  box.innerHTML=slides.map((sl,k)=>{
+    const b0=sl.b0,b1=sl.b1;let h='<div class="pls"><div class="plh"><b>Slide '+(k+1)+'</b> '+esc(sl.tag)+' <span class="chip">'+(b1-b0)+' khối</span>'+(sl.type?'<span class="chip">'+({mcq:'4 đáp án',tf:'Đúng/Sai',short:'Trả lời ngắn',essay:'Tự luận'}[sl.type]||'')+'</span>':'')+((sl.links&&sl.links.length)?'<span class="chip">🔗 '+sl.links.length+'</span>':'')+(k>0?' <button class="g" data-a="m" data-i="'+b0+'" title="Gộp slide này vào slide '+k+'">↑ Gộp lên slide '+k+'</button>':'')+'</div>';
+    for(let i=b0;i<b1;i++)h+='<div class="plb"><span class="plt">'+pv(blocks[i])+'</span>'+(i>b0?'<button class="g" data-a="s" data-i="'+i+'" title="Bắt đầu slide mới từ khối này">✂ Tách từ đây</button>':'')+'<button class="g" data-a="u" data-i="'+i+'"'+(i===0?' disabled':'')+' title="Đưa khối lên">⬆</button><button class="g" data-a="d" data-i="'+i+'"'+(i===blocks.length-1?' disabled':'')+' title="Đưa khối xuống">⬇</button></div>';
+    return h+'</div>'}).join('');
+  box.scrollTop=top;
+}
+function planDo(a,i){
+  const n0=slides.length;
+  if(a==='u'&&i>0){const t=blocks[i];blocks[i]=blocks[i-1];blocks[i-1]=t}
+  else if(a==='d'&&i<blocks.length-1){const t=blocks[i];blocks[i]=blocks[i+1];blocks[i+1]=t}
+  else if(a==='s'){blocks[i].fs=true;blocks[i].fn=false}
+  else if(a==='m'){blocks[i].fs=false;blocks[i].fn=true}
+  segment();planDraw();
+  if(a==='m'&&slides.length>=n0)toast('Không gộp được: chỗ này tách tự động vì có tiêu đề PHẦN/CHƯƠNG hoặc nhóm “Nội dung”. Hãy dùng ⬆ ⬇ để đưa khối sang slide kia.');
+}
+$('planBtn').onclick=()=>{if(!blocks.length)return;planDraw();$('plan').hidden=false};
+$('plL').onclick=e=>{const b=e.target.closest('button[data-a]');if(b&&!b.disabled)planDo(b.dataset.a,+b.dataset.i)};
+$('plAuto').onclick=()=>{blocks.forEach(b=>{delete b.fs;delete b.fn});segment();planDraw();toast('Đã chia lại tự động')};
+$('plDone').onclick=()=>{$('plan').hidden=true};
+// ---- Nút liên kết của từng slide ----
+const LKI={img:'🖼',vid:'🎬',aud:'🔊',ppt:'📊',doc:'📄',xls:'📈',pdf:'📕',html:'🌐',web:'🌐',file:'📎'};
+let lkmI=-1;
+function lkmDraw(){
+  const s=slides[lkmI],L=s.links||[];$('lkmT').textContent='🔗 Nút liên kết · slide '+(lkmI+1)+' · '+s.tag;
+  $('lkmL').innerHTML=L.length?L.map((l,j)=>'<div class="lkmr"><span>'+(LKI[l.ty]||'🔗')+'</span><b>'+esc(l.t)+'</b><small>'+esc(/^data:/i.test(l.u)?'(đã nhúng) '+(l.f||''):l.u)+'</small><button class="g" data-a="e" data-j="'+j+'" title="Sửa">✏</button><button class="g" data-a="d" data-j="'+j+'" title="Xóa">🗑</button></div>').join(''):'<p class="muted">Chưa có nút liên kết nào. Bấm “＋ Thêm nút liên kết”.</p>';
+}
+function openLkm(i){lkmI=i;lkmDraw();$('lkm').hidden=false}
+const lkmDone=()=>{slidesEdited=true;lkmDraw();drawList()};
+$('lkmAdd').onclick=()=>{const s=slides[lkmI];openLk(null,null,l=>{(s.links=s.links||[]).push(l);lkmDone();toast('Đã thêm nút liên kết')},null)};
+$('lkmL').onclick=e=>{const b=e.target.closest('button[data-a]');if(!b)return;const s=slides[lkmI],j=+b.dataset.j;
+  if(b.dataset.a==='d'){s.links.splice(j,1);if(!s.links.length)delete s.links;lkmDone()}
+  else openLk(null,null,l=>{s.links[j]=l;lkmDone()},s.links[j])};
+$('lkmClose').onclick=()=>{$('lkm').hidden=true;lkmI=-1};
+$('lkU').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('lkOk').click()}});
+document.addEventListener('dblclick',e=>{const a=e.target.closest&&e.target.closest('.edroot a[href]');if(a){e.preventDefault();openLk(rootOf(a),a)}});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('.edroot a[href]');if(a)e.preventDefault()},true);
 
 // ---- Trình sửa từng slide ----
 let sedI=-1;
@@ -1085,15 +1346,15 @@ function saveSed(){
     if(s.type)s.ex=buildEx([mk(s.steps[0])],s.type);
     s.solHtml=s.steps.slice(1).map(h=>{const d=mk(h),e=d.querySelector(':scope>.sol');return e?e.innerHTML:h}).join('');
   }
-  slidesEdited=true;$('sed').hidden=true;drawList();toast('Đã lưu slide '+(sedI+1));sedI=-1;
+  s.edited=true;slidesEdited=true;$('sed').hidden=true;drawList();toast('Đã lưu slide '+(sedI+1));sedI=-1;
 }
 let slidesEdited=false;
 $('sedOk').onclick=saveSed;$('sedNo').onclick=()=>{hideImgTb();$('sed').hidden=true;sedI=-1};
 $('sedPrev').onclick=()=>{if(sedI<0)return;const i=sedI;saveSed();openSed(Math.min(slides.length-1,i+1))};
 function drawList(){
-  $('list').innerHTML=slides.map((s,i)=>'<div>'+(i+1)+'. <b>'+esc(s.tag)+'</b> – '+s.steps.length+' bước <button class="g se" data-i="'+i+'" title="Sửa chữ, ảnh, công thức của slide này">✏ Sửa</button></div>').join('');
+  $('list').innerHTML=slides.map((s,i)=>'<div>'+(i+1)+'. <b>'+esc(s.tag)+'</b> – '+s.steps.length+' bước <button class="g se" data-i="'+i+'" title="Sửa chữ, ảnh, công thức của slide này">✏ Sửa</button> <button class="g sl" data-i="'+i+'" title="Thêm nút liên kết mở PowerPoint, Word, .html, video, ảnh… khi trình chiếu">🔗 Liên kết'+((s.links&&s.links.length)?' ('+s.links.length+')':'')+'</button></div>').join('');
 }
-$('list').onclick=e=>{const b=e.target.closest('.se');if(b)openSed(+b.dataset.i)};
+$('list').onclick=e=>{const b=e.target.closest('.se');if(b){openSed(+b.dataset.i);return}const l=e.target.closest('.sl');if(l)openLkm(+l.dataset.i)};
 
 const isRed=c=>{const x=document.createElement('canvas').getContext('2d');x.fillStyle='#000';x.fillStyle=c;const v=x.fillStyle;let r,g,b;
   if(v[0]==='#'){r=parseInt(v.slice(1,3),16);g=parseInt(v.slice(3,5),16);b=parseInt(v.slice(5,7),16)}else{const m=v.match(/\d+/g)||[0,0,0];r=+m[0];g=+m[1];b=+m[2]}
@@ -1361,8 +1622,8 @@ $('f').onchange=e=>handle(e.target.files[0]);
 $('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('on')};
 $('drop').ondragleave=()=>$('drop').classList.remove('on');
 $('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('on');handle(e.dataTransfer.files[0])};
-const reSeg=()=>{if(slidesEdited&&!confirm('Bạn đã sửa tay một số slide. Tách lại từ trang tạm sẽ làm mất các chỉnh sửa đó. Tiếp tục?'))return;segment()};
-$('re').onclick=reSeg;$('oLine').onchange=$('oPlain').onchange=()=>blocks.length&&reSeg();
+const reSeg=()=>{segment()};
+$('re').onclick=reSeg;$('oLine').onchange=$('oPlain').onchange=$('oChunk').onchange=()=>blocks.length&&reSeg();
 $('play').onclick=()=>{$('fr').srcdoc=build();$('ov').style.display='block';try{const r=$('ov').requestFullscreen||$('ov').webkitRequestFullscreen;r&&r.call($('ov'))}catch(e){};setTimeout(()=>$('fr').contentWindow.focus(),200)};
 $('cl').onclick=()=>{$('ov').style.display='none';$('fr').srcdoc='';try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}};
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('ov').style.display==='block'){$('ov').style.display='none';$('fr').srcdoc=''}});
